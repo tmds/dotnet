@@ -13,6 +13,7 @@ namespace Microsoft.DotNet.SourceBuild.SmokeTests;
 internal class DotNetHelper
 {
     private static readonly object s_lockObj = new();
+    private static bool IsMonoRuntime => Type.GetType("Mono.Runtime") is not null;
 
     public static string DotNetPath { get; } = Path.Combine(Config.DotNetDirectory, "dotnet");
     public static string LogsDirectory { get; } = Path.Combine(Directory.GetCurrentDirectory(), "logs");
@@ -198,6 +199,7 @@ internal class DotNetHelper
 
     public void ExecuteRunWeb(string projectName)
     {
+        int expectedExitCode = IsMonoRuntime ? 143 : 0;
         ExecuteCmd(
             $"run {GetBinLogOption(projectName, "run")}",
             GetProjectDirectory(projectName),
