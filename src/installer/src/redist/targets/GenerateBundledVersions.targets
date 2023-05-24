@@ -209,6 +209,10 @@
         Condition="'$(DotNetBuildFromSource)' == 'true'"
         Include="$(ProductMonikerRid)" />
 
+      <AspNetCore80RuntimePackRids
+        Condition="'$(DotNetBuildFromSource)' == 'true'"
+        Include="$(ProductMonikerRid)" />
+
       <MonoRuntimePackRids Include="
           @(NetCoreRuntimePackRids);
           browser-wasm;
