@@ -8,12 +8,55 @@ using Microsoft.NET.Build.Containers.LocalDaemons;
 using Microsoft.NET.Build.Containers.Logging;
 using Microsoft.NET.Build.Containers.Resources;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
+using System.Diagnostics.Tracing;
+using Microsoft.DotNet.Cli.Utils;
 
 namespace Microsoft.NET.Build.Containers.Tasks;
 
 public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICancelableTask, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
+
+    sealed class EventSourceListener : EventListener
+    {
+        private readonly StringBuilder _messageBuilder = new StringBuilder();
+        private readonly ILogger _logger;
+
+        public EventSourceListener(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            base.OnEventSourceCreated(eventSource);
+
+            if (eventSource.Name == "Private.InternalDiagnostics.System.Net.Http")
+            {
+                EnableEvents(eventSource, EventLevel.LogAlways, EventKeywords.All);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            base.OnEventWritten(eventData);
+
+            string message;
+            lock (_messageBuilder)
+            {
+                _messageBuilder.Append("<- Event ");
+                _messageBuilder.Append(eventData.EventSource.Name);
+                _messageBuilder.Append(" - ");
+                _messageBuilder.Append(eventData.EventName);
+                _messageBuilder.Append(" : ");
+                _messageBuilder.AppendJoin(',', eventData.Payload!);
+                _messageBuilder.Append(" ->");
+                message = _messageBuilder.ToString();
+                _messageBuilder.Clear();
+            }
+            _logger.LogInformation(message);
+        }
+    }
 
     /// <summary>
     /// Unused. For interface parity with the ToolTask implementation of the task.
@@ -41,6 +84,8 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
         using MSBuildLoggerProvider loggerProvider = new(Log);
         ILoggerFactory msbuildLoggerFactory = new LoggerFactory(new[] { loggerProvider });
         ILogger logger = msbuildLoggerFactory.CreateLogger<CreateNewImage>();
+        bool enableEventSourceLogging = Env.GetEnvironmentVariableAsBool("LOG_HTTP_INTERNAL", false);
+        using EventSourceListener? listener = enableEventSourceLogging ? new EventSourceListener(logger) : null;
 
         if (!Directory.Exists(PublishDirectory))
         {
@@ -100,7 +145,7 @@ public sealed partial class CreateNewImage : Microsoft.Build.Utilities.Task, ICa
 
         SafeLog(Strings.ContainerBuilder_StartBuildingImage, Repository, String.Join(",", ImageTags), sourceImageReference);
 
-        Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory, imageBuilder.IsWindows);
+        Layer newLayer = Layer.FromDirectory(PublishDirectory, WorkingDirectory, imageBuilder.IsWindows, imageBuilder.ManifestMediaType);
         imageBuilder.AddLayer(newLayer);
         imageBuilder.SetWorkingDirectory(WorkingDirectory);
 
