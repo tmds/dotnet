@@ -3,7 +3,7 @@
   <PropertyGroup>
     <GitCommitHash>0b25e38ad32a69cd83ae246104b32449203cc71c</GitCommitHash>
     <OfficialBuildId>20230925.17</OfficialBuildId>
-    <OutputPackageVersion>8.0.0-rc.2.23475.17</OutputPackageVersion>
+    <OutputPackageVersion>8.0.0-rc.2.23479.6</OutputPackageVersion>
     <PreReleaseVersionLabel>rc.2</PreReleaseVersionLabel>
     <IsStable>false</IsStable>
   </PropertyGroup>
