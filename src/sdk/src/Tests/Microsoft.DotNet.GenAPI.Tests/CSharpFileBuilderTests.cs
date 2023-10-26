@@ -46,7 +46,8 @@ namespace Microsoft.DotNet.GenAPI.Tests
 
             using Stream assemblyStream = SymbolFactory.EmitAssemblyStreamFromSyntax(original, enableNullable: true, allowUnsafe: allowUnsafe, assemblyName: assemblyName);
             AssemblySymbolLoader assemblySymbolLoader = new AssemblySymbolLoader(resolveAssemblyReferences: true, includeInternalSymbols: includeInternalSymbols);
-            assemblySymbolLoader.AddReferenceSearchPaths(typeof(object).Assembly!.Location!);            
+            assemblySymbolLoader.AddReferenceSearchPaths(typeof(object).Assembly!.Location!);
+            assemblySymbolLoader.AddReferenceSearchPaths(typeof(DynamicAttribute).Assembly!.Location!);
             IAssemblySymbol assemblySymbol = assemblySymbolLoader.LoadAssembly(assemblyName, assemblyStream);
 
             csharpFileBuilder.WriteAssembly(assemblySymbol);
@@ -1732,7 +1733,7 @@ namespace Microsoft.DotNet.GenAPI.Tests
                     {
                         public partial class foo
                         {
-                            public void Execute(out int i) { throw null; }
+                            public void Execute(scoped out int i) { throw null; }
                         }
                     }
                     """,
@@ -2466,6 +2467,40 @@ namespace Microsoft.DotNet.GenAPI.Tests
                     [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(System.ValueTuple<,,,,,,,>))]
                     """,
                 includeInternalSymbols: false);
+        }
+
+        [Fact]
+        public void ReservedAttributesAreOmitted()
+        {
+            RunTest(original: """
+                namespace N {
+                    public ref struct C<T>
+                        where T : unmanaged
+                    {
+                        public required (string? k, dynamic v, nint n) X { get; init; }    
+                    }
+
+                    public static class E
+                    {
+                        public static void M<T>(this object c, scoped System.ReadOnlySpan<T> values) { }
+                    }
+                }
+                """,
+                expected: """                
+                namespace N
+                {
+                    public partial struct C<T>
+                        where T : unmanaged
+                    {
+                        public required (string? k, dynamic v, nint n) X { get { throw null; } init; }
+                    }
+
+                    public static partial class E
+                    {
+                        public static void M<T>(this object c, System.ReadOnlySpan<T> values) { }
+                    }
+                }
+                """);
         }
     }
 }

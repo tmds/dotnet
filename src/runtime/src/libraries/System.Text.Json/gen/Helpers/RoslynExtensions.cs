@@ -8,12 +8,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DotnetRuntime.Extensions;
 
 namespace System.Text.Json.SourceGeneration
 {
     internal static class RoslynExtensions
     {
+        public static LanguageVersion? GetLanguageVersion(this Compilation compilation)
+            => compilation is CSharpCompilation csc ? csc.LanguageVersion : null;
+
         public static INamedTypeSymbol? GetBestTypeByMetadataName(this Compilation compilation, Type type)
         {
             Debug.Assert(!type.IsArray, "Resolution logic only capable of handling named types.");
@@ -228,6 +232,13 @@ namespace System.Text.Json.SourceGeneration
             return member is IFieldSymbol fs ? fs.Type : ((IPropertySymbol)member).Type;
         }
 
+        public static bool IsOverriddenOrShadowedBy(this ISymbol member, ISymbol otherMember)
+        {
+            Debug.Assert(member is IFieldSymbol or IPropertySymbol);
+            Debug.Assert(otherMember is IFieldSymbol or IPropertySymbol);
+            return member.Name == otherMember.Name && member.ContainingType.IsAssignableFrom(otherMember.ContainingType);
+        }
+
         public static bool MemberNameNeedsAtSign(this ISymbol symbol)
             => SyntaxFacts.GetKeywordKind(symbol.Name) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(symbol.Name) != SyntaxKind.None;
 
@@ -254,6 +265,33 @@ namespace System.Text.Json.SourceGeneration
                 // For consistency with class hierarchy resolution order,
                 // sort topologically from most derived to least derived.
                 return JsonHelpers.TraverseGraphWithTopologicalSort<INamedTypeSymbol>(namedType, static t => t.AllInterfaces, SymbolEqualityComparer.Default);
+            }
+        }
+
+        /// <summary>
+        /// Returns the kind keyword corresponding to the specified declaration syntax node.
+        /// </summary>
+        public static string GetTypeKindKeyword(this TypeDeclarationSyntax typeDeclaration)
+        {
+            switch (typeDeclaration.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    return "class";
+                case SyntaxKind.InterfaceDeclaration:
+                    return "interface";
+                case SyntaxKind.StructDeclaration:
+                    return "struct";
+                case SyntaxKind.RecordDeclaration:
+                    return "record";
+                case SyntaxKind.RecordStructDeclaration:
+                    return "record struct";
+                case SyntaxKind.EnumDeclaration:
+                    return "enum";
+                case SyntaxKind.DelegateDeclaration:
+                    return "delegate";
+                default:
+                    Debug.Fail("unexpected syntax kind");
+                    return null;
             }
         }
     }

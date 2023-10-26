@@ -16,7 +16,5 @@ public static class DotNetTemplateExtensions
         || template == DotNetTemplate.WebApi
         || template == DotNetTemplate.Razor
         || template == DotNetTemplate.BlazorWasm
-        || template == DotNetTemplate.BlazorServer
-        || template == DotNetTemplate.Worker
-        || template == DotNetTemplate.Angular;
+        || template == DotNetTemplate.Worker;
 }

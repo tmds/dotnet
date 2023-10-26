@@ -974,9 +974,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (Arity != 0 || ContainingType.IsGenericType)
+            if (ContainingType.IsGenericType)
             {
-                diagnostics.Add(ErrorCode.ERR_InterceptorCannotBeGeneric, attributeLocation, this);
+                diagnostics.Add(ErrorCode.ERR_InterceptorContainingTypeCannotBeGeneric, attributeLocation, this);
                 return;
             }
 
@@ -1115,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             arguments.GetOrCreateData<MethodWellKnownAttributeData>().UnmanagedCallersOnlyAttributeData =
                 DecodeUnmanagedCallersOnlyAttributeData(this, arguments.Attribute, arguments.AttributeSyntaxOpt.Location, diagnostics);
 
-            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name.Location, diagnostics);
+            bool reportedError = CheckAndReportValidUnmanagedCallersOnlyTarget(arguments.AttributeSyntaxOpt.Name, diagnostics);
 
             var returnTypeSyntax = this.ExtractReturnTypeSyntax();
 

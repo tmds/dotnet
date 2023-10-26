@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -715,7 +716,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var codeDocument = CreateCodeDocument(output, DefaultTagHelpers);
         var csharpSourceText = codeDocument.GetCSharpSourceText();
         var csharpDocumentUri = new Uri("C:/path/to/file.razor__virtual.g.cs");
-        var serverCapabilities = new ServerCapabilities()
+        var serverCapabilities = new VSInternalServerCapabilities()
         {
             HoverProvider = true
         };
@@ -734,7 +735,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
             , MockBehavior.Strict);
         var languageServer = new HoverLanguageServer(csharpServer, csharpDocumentUri, DisposalToken);
         var documentMappingService = new RazorDocumentMappingService(languageServerFeatureOptions, documentContextFactory, LoggerFactory);
-        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.Projects == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }, MockBehavior.Strict);
+        var projectSnapshotManager = Mock.Of<ProjectSnapshotManagerBase>(p => p.GetProjects() == new[] { Mock.Of<IProjectSnapshot>(MockBehavior.Strict) }.ToImmutableArray(), MockBehavior.Strict);
         var hoverInfoService = GetHoverInfoService();
 
         var endpoint = new HoverEndpoint(
@@ -747,7 +748,7 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
         var clientCapabilities = CreateMarkDownCapabilities();
         clientCapabilities.SupportsVisualStudioExtensions = true;
 
-        _ = endpoint.GetRegistration(clientCapabilities);
+        endpoint.ApplyCapabilities(new(), clientCapabilities);
 
         codeDocument.GetSourceText().GetLineAndOffset(cursorPosition, out var line, out var offset);
         var razorFileUri = new Uri(razorFilePath);
@@ -863,9 +864,9 @@ public class HoverInfoServiceTest : TagHelperServiceTestBase
 
             var hoverRequest = new TextDocumentPositionParams()
             {
-                TextDocument = new TextDocumentIdentifier()
+                TextDocument = new VSTextDocumentIdentifier()
                 {
-                    Uri = _csharpDocumentUri
+                    Uri = _csharpDocumentUri,
                 },
                 Position = hoverParams.ProjectedPosition
             };

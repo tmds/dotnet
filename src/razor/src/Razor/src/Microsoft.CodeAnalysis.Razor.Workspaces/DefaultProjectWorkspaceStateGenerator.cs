@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Razor;
 internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGenerator, IDisposable
 {
     // Internal for testing
-    internal readonly Dictionary<string, UpdateItem> Updates;
+    internal readonly Dictionary<ProjectKey, UpdateItem> Updates;
 
     private readonly ProjectSnapshotManagerDispatcher _projectSnapshotManagerDispatcher;
     private readonly SemaphoreSlim _semaphore;
@@ -40,7 +40,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
         _projectSnapshotManagerDispatcher = projectSnapshotManagerDispatcher;
 
         _semaphore = new SemaphoreSlim(initialCount: 1);
-        Updates = new Dictionary<string, UpdateItem>(FilePathComparer.Instance);
+        Updates = new Dictionary<ProjectKey, UpdateItem>();
     }
 
     // Used in unit tests to ensure we can control when background work starts.
@@ -75,7 +75,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
             return;
         }
 
-        if (Updates.TryGetValue(projectSnapshot.FilePath, out var updateItem) &&
+        if (Updates.TryGetValue(projectSnapshot.Key, out var updateItem) &&
             !updateItem.Task.IsCompleted &&
             !updateItem.Cts.IsCancellationRequested)
         {
@@ -94,7 +94,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
             TaskCreationOptions.None,
             TaskScheduler.Default).Unwrap();
         updateItem = new UpdateItem(updateTask, lcts);
-        Updates[projectSnapshot.FilePath] = updateItem;
+        Updates[projectSnapshot.Key] = updateItem;
     }
 
     public void Dispose()
@@ -204,7 +204,7 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
                         return;
                     }
 
-                    ReportWorkspaceStateChange(projectSnapshot.FilePath, workspaceState);
+                    ReportWorkspaceStateChange(projectSnapshot.Key, workspaceState);
                 },
                 cancellationToken).ConfigureAwait(false);
         }
@@ -241,11 +241,11 @@ internal class DefaultProjectWorkspaceStateGenerator : ProjectWorkspaceStateGene
         OnBackgroundWorkCompleted();
     }
 
-    private void ReportWorkspaceStateChange(string projectFilePath, ProjectWorkspaceState workspaceStateChange)
+    private void ReportWorkspaceStateChange(ProjectKey projectKey, ProjectWorkspaceState workspaceStateChange)
     {
         _projectSnapshotManagerDispatcher.AssertDispatcherThread();
 
-        _projectManager.ProjectWorkspaceStateChanged(projectFilePath, workspaceStateChange);
+        _projectManager.ProjectWorkspaceStateChanged(projectKey, workspaceStateChange);
     }
 
     private void OnStartingBackgroundWork()

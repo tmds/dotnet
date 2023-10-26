@@ -52,23 +52,23 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
     public RazorDiagnosticsPublisherTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        var testProjectManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
-        var hostProject = new HostProject("C:/project/project.csproj", RazorConfiguration.Default, "TestRootNamespace");
+        var testProjectManager = TestProjectSnapshotManager.Create(ErrorReporter);
+        var hostProject = new HostProject("C:/project/project.csproj", "C:/project/obj", RazorConfiguration.Default, "TestRootNamespace");
         testProjectManager.ProjectAdded(hostProject);
         var sourceText = SourceText.From(string.Empty);
         var textAndVersion = TextAndVersion.Create(sourceText, VersionStamp.Default);
         var openedHostDocument = new HostDocument("C:/project/open_document.cshtml", "C:/project/open_document.cshtml");
-        testProjectManager.DocumentAdded(hostProject, openedHostDocument, TextLoader.From(textAndVersion));
-        testProjectManager.DocumentOpened(hostProject.FilePath, openedHostDocument.FilePath, sourceText);
+        testProjectManager.DocumentAdded(hostProject.Key, openedHostDocument, TextLoader.From(textAndVersion));
+        testProjectManager.DocumentOpened(hostProject.Key, openedHostDocument.FilePath, sourceText);
         var closedHostDocument = new HostDocument("C:/project/closed_document.cshtml", "C:/project/closed_document.cshtml");
-        testProjectManager.DocumentAdded(hostProject, closedHostDocument, TextLoader.From(textAndVersion));
+        testProjectManager.DocumentAdded(hostProject.Key, closedHostDocument, TextLoader.From(textAndVersion));
 
-        var openedDocument = testProjectManager.Projects[0].GetDocument(openedHostDocument.FilePath);
+        var openedDocument = testProjectManager.GetProjects()[0].GetDocument(openedHostDocument.FilePath);
         Assert.NotNull(openedDocument);
         _openedDocument = openedDocument;
         _openedDocumentUri = new Uri("C:/project/open_document.cshtml");
 
-        var closedDocument = testProjectManager.Projects[0].GetDocument(closedHostDocument.FilePath);
+        var closedDocument = testProjectManager.GetProjects()[0].GetDocument(closedHostDocument.FilePath);
         Assert.NotNull(closedDocument);
         _closedDocument = closedDocument;
 
@@ -340,7 +340,7 @@ public class RazorDiagnosticsPublisherTest : LanguageServerTestBase
             {
                 Assert.Equal(_openedDocumentUri, @params.TextDocument.Uri);
             })
-            .Returns(Task.FromResult(new SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?( new FullDocumentDiagnosticReport())));
+            .Returns(Task.FromResult(new SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>?(new FullDocumentDiagnosticReport())));
 
         languageServer
             .Setup(server => server.SendNotificationAsync(

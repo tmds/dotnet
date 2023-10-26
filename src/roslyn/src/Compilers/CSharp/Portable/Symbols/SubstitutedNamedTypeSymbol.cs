@@ -409,6 +409,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return OriginalDefinition.ComImportCoClass; }
         }
 
+#nullable enable
+        internal sealed override bool HasCollectionBuilderAttribute(out TypeSymbol? builderType, out string? methodName)
+        {
+            return _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
+        }
+#nullable disable
+
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
         {
             throw ExceptionUtilities.Unreachable();
@@ -439,5 +446,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsRecord => _underlyingType.IsRecord;
         internal sealed override bool IsRecordStruct => _underlyingType.IsRecordStruct;
         internal sealed override bool HasPossibleWellKnownCloneMethod() => _underlyingType.HasPossibleWellKnownCloneMethod();
+
+        internal sealed override bool HasInlineArrayAttribute(out int length)
+        {
+            return _underlyingType.HasInlineArrayAttribute(out length);
+        }
     }
 }

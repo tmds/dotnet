@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
 
             capabilities.FoldingRangeProvider = true;
-            capabilities.ExecuteCommandProvider = new ExecuteCommandOptions();
+            capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = Array.Empty<string>() };
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
             {
                 Change = TextDocumentSyncKind.Incremental,
@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities).AllTokenTypes.ToArray(),
-                    TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
+                    TokenModifiers = SemanticTokensSchema.TokenModifiers
                 }
             };
 

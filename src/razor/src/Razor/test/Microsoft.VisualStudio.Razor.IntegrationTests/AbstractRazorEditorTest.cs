@@ -28,8 +28,9 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
 
         VisualStudioLogging.AddCustomLoggers();
 
-        await TestServices.SolutionExplorer.CreateSolutionAsync("BlazorSolution", ControlledHangMitigatingCancellationToken);
-        await TestServices.SolutionExplorer.AddProjectAsync("BlazorProject", WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CreateSolutionAsync(RazorProjectConstants.BlazorSolutionName, ControlledHangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync(RazorProjectConstants.BlazorProjectName, WellKnownProjectTemplates.BlazorProject, groupId: WellKnownProjectTemplates.GroupIdentifiers.Server, templateId: null, LanguageName, ControlledHangMitigatingCancellationToken);
+
         await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(ControlledHangMitigatingCancellationToken);
         await TestServices.Workspace.WaitForProjectSystemAsync(ControlledHangMitigatingCancellationToken);
 
@@ -51,6 +52,14 @@ public abstract class AbstractRazorEditorTest : AbstractEditorTest
 
         await TestServices.Editor.PlaceCaretAsync("</PageTitle>", charsOffset: 1, ControlledHangMitigatingCancellationToken);
         await TestServices.Editor.WaitForComponentClassificationAsync(ControlledHangMitigatingCancellationToken, count: 3);
+
+        TestServices.Input.Send("{ENTER}");
+
+        await Task.Delay(10000);
+
+        TestServices.Input.Send("{ENTER}");
+
+        await Task.Delay(10000);
 
         // Close the file we opened, just in case, so the test can start with a clean slate
         await TestServices.Editor.CloseCodeFileAsync(RazorProjectConstants.BlazorProjectName, RazorProjectConstants.IndexRazorFile, saveFile: false, ControlledHangMitigatingCancellationToken);

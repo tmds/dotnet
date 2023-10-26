@@ -2182,6 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructLayoutCyclePrimaryConstructorParameter = 9121,
         ERR_UnexpectedParameterList = 9122,
         WRN_AddressOfInAsync = 9123,
+        WRN_CapturedPrimaryConstructorParameterInFieldInitializer = 9124,
 
         ERR_BadRefInUsingAlias = 9130,
         ERR_BadUnsafeInUsingDirective = 9131,
@@ -2193,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny = 9136,
 
         ERR_InterceptorsFeatureNotEnabled = 9137,
-        ERR_InterceptorCannotBeGeneric = 9138,
+        ERR_InterceptorContainingTypeCannotBeGeneric = 9138,
         ERR_InterceptorPathNotInCompilation = 9139,
         ERR_InterceptorPathNotInCompilationWithCandidate = 9140,
         ERR_InterceptorPositionBadToken = 9141,
@@ -2219,6 +2220,37 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorCannotUseUnmanagedCallersOnly = 9161,
 
         ERR_BadUsingStaticType = 9162,
+        ERR_SymbolDefinedInAssembly = 9163,
+
+        ERR_InlineArrayConversionToSpanNotSupported = 9164,
+        ERR_InlineArrayConversionToReadOnlySpanNotSupported = 9165,
+        ERR_InlineArrayIndexOutOfRange = 9166,
+        ERR_InvalidInlineArrayLength = 9167,
+        ERR_InvalidInlineArrayLayout = 9168,
+        ERR_InvalidInlineArrayFields = 9169,
+        ERR_ExpressionTreeContainsInlineArrayOperation = 9170,
+        ERR_RuntimeDoesNotSupportInlineArrayTypes = 9171,
+        ERR_InlineArrayBadIndex = 9172,
+        ERR_NamedArgumentForInlineArray = 9173,
+
+        ERR_CollectionExpressionTargetTypeNotConstructible = 9174,
+        ERR_ExpressionTreeContainsCollectionExpression = 9175,
+        ERR_CollectionExpressionNoTargetType = 9176,
+
+        ERR_InterceptorArityNotCompatible = 9177,
+        ERR_InterceptorCannotBeGeneric = 9178,
+
+        WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase = 9179,
+
+        ERR_InlineArrayUnsupportedElementFieldModifier = 9180,
+        WRN_InlineArrayIndexerNotUsed = 9181,
+        WRN_InlineArraySliceNotUsed = 9182,
+        WRN_InlineArrayConversionOperatorNotUsed = 9183,
+        WRN_InlineArrayNotSupportedByLanguage = 9184,
+        ERR_CollectionBuilderAttributeInvalidType = 9185,
+        ERR_CollectionBuilderAttributeInvalidMethodName = 9186,
+        ERR_CollectionBuilderAttributeMethodNotFound = 9187,
+        ERR_CollectionBuilderNoElementType = 9188,
 
         #endregion
 

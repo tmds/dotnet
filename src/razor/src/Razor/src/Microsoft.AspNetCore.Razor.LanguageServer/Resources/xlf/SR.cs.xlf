@@ -22,6 +22,16 @@
         <target state="translated">Extrahovat blok do kódu na pozadí</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Async_Event_Handler_Title">
+        <source>Generate Async Event Handler '{0}'</source>
+        <target state="translated">Generovat asynchronní obslužnou rutinu události {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Handler_Title">
+        <source>Generate Event Handler '{0}'</source>
+        <target state="translated">Generovat obslužnou rutinu události {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_Offset">
         <source>Invalid offset.</source>
         <target state="translated">Neplatný posun</target>

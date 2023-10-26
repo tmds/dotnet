@@ -9,6 +9,7 @@
     <Compile Include="$(SharedSourceRoot)SyncPoint\SyncPoint.cs" />
     <Compile Include="$(SharedSourceRoot)EventSource.Testing\TestEventListener.cs" />
     <Compile Include="$(SharedSourceRoot)Metrics\TestMeterFactory.cs" LinkBase="shared" />
+    <Compile Include="$(SignalRSharedSourceRoot)EphemeralDataProtectionProvider.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +25,7 @@
     <Reference Include="Microsoft.AspNetCore.Http.Connections" />
     <Reference Include="Microsoft.AspNetCore.Http.Connections.Client" />
     <Reference Include="Microsoft.AspNetCore.Http" />
+    <Reference Include="Microsoft.Extensions.Telemetry.Testing" />
     <Reference Include="Newtonsoft.Json" />
   </ItemGroup>
 

@@ -514,7 +514,7 @@
         "appsettings.json",
         "Program.cs",
         "Models/WeatherForecast.cs",
-        "Pages/ShowData.razor",
+        "Pages/Weather.razor",
         "Pages/Index.razor",
         "Properties/launchSettings.json",
         "Shared/MainLayout.razor",
@@ -546,7 +546,7 @@
         "Program.cs",
         "Models/WeatherForecast.cs",
         "Pages/Counter.razor",
-        "Pages/ShowData.razor",
+        "Pages/Weather.razor",
         "Pages/Index.razor",
         "Properties/launchSettings.json",
         "Shared/MainLayout.razor",
@@ -579,7 +579,7 @@
         "Program.Server.cs",
         "Models/WeatherForecast.cs",
         "Pages/Counter.razor",
-        "Pages/ShowData.razor",
+        "Pages/Weather.razor",
         "Pages/Index.razor",
         "Properties/launchSettings.json",
         "Shared/MainLayout.razor",
@@ -614,7 +614,7 @@
         "Program.Server.cs",
         "Models/WeatherForecast.cs",
         "Pages/Counter.razor",
-        "Pages/ShowData.razor",
+        "Pages/Weather.razor",
         "Pages/Index.razor",
         "Properties/launchSettings.json",
         "Shared/MainLayout.razor",
@@ -662,27 +662,13 @@
       "AuthOption": "None"
     }
   },
-  "api": {
+  "webapiaot": {
     "Default": {
-      "Template": "api",
-      "Arguments": "new api",
+      "Template": "webapiaot",
+      "Arguments": "new webapiaot",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
-        "Todo.cs",
-        "Program.cs",
-        "{ProjectName}.http",
-        "Properties/launchSettings.json"
-      ],
-      "AuthOption": "None"
-    },
-    "NativeAot": {
-      "Template": "api",
-      "Arguments": "new api --aot",
-      "Files": [
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Todo.cs",
         "Program.cs",
         "{ProjectName}.http",
         "Properties/launchSettings.json"
@@ -690,25 +676,11 @@
       "AuthOption": "None"
     },
     "ProgramMain": {
-      "Template": "api",
-      "Arguments": "new api --use-program-main",
+      "Template": "webapiaot",
+      "Arguments": "new webapiaot --use-program-main",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
-        "Todo.cs",
-        "Program.cs",
-        "{ProjectName}.http",
-        "Properties/launchSettings.json"
-      ],
-      "AuthOption": "None"
-    },
-    "ProgramMainNativeAot": {
-      "Template": "api",
-      "Arguments": "new api --aot --use-program-main",
-      "Files": [
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Todo.cs",
         "Program.cs",
         "{ProjectName}.http",
         "Properties/launchSettings.json"
@@ -719,7 +691,7 @@
   "webapi": {
     "IndividualB2C": {
       "Template": "webapi",
-      "Arguments": "new webapi -au IndividualB2C --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
+      "Arguments": "new webapi -controllers -au IndividualB2C --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -732,7 +704,7 @@
     },
     "IndividualB2CProgramMain": {
       "Template": "webapi",
-      "Arguments": "new webapi -au IndividualB2C --use-program-main --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
+      "Arguments": "new webapi -controllers -au IndividualB2C --use-program-main --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -745,7 +717,7 @@
     },
     "SingleOrg": {
       "Template": "webapi",
-      "Arguments": "new webapi -au SingleOrg --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
+      "Arguments": "new webapi -controllers -au SingleOrg --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -758,7 +730,7 @@
     },
     "SingleOrgProgramMain": {
       "Template": "webapi",
-      "Arguments": "new webapi -au SingleOrg --use-program-main --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
+      "Arguments": "new webapi -controllers -au SingleOrg --use-program-main --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -771,7 +743,7 @@
     },
     "None": {
       "Template": "webapi",
-      "Arguments": "new webapi -au None",
+      "Arguments": "new webapi -controllers -au None",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -784,7 +756,20 @@
     },
     "NoneProgramMain": {
       "Template": "webapi",
-      "Arguments": "new webapi -au None --use-program-main",
+      "Arguments": "new webapi -controllers -au None --use-program-main",
+      "Files": [
+        "appsettings.Development.json",
+        "appsettings.json",
+        "Program.cs",
+        "WeatherForecast.cs",
+        "Controllers/WeatherForecastController.cs",
+        "Properties/launchSettings.json"
+      ],
+      "AuthOption": "None"
+    },
+    "ControllersOverridesMinimal": {
+      "Template": "webapi",
+      "Arguments": "new webapi -controllers -minimal",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -797,7 +782,7 @@
     },
     "MinimalIndividualB2C": {
       "Template": "webapi",
-      "Arguments": "new webapi -minimal -au IndividualB2C --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
+      "Arguments": "new webapi -au IndividualB2C --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -808,7 +793,7 @@
     },
     "MinimalIndividualB2CProgramMain": {
       "Template": "webapi",
-      "Arguments": "new webapi -minimal --use-program-main -au IndividualB2C --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
+      "Arguments": "new webapi --use-program-main -au IndividualB2C --aad-b2c-instance https://login.microsoftonline.com/tfp/ --domain fake-b2c-domain.onmicrosoft.com --client-id 64f31f76-2750-49e4-aab9-f5de105b5172 -ssp B2C_1_SiUpIn",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -820,7 +805,7 @@
     },
     "MinimalSingleOrg": {
       "Template": "webapi",
-      "Arguments": "new webapi -minimal -au SingleOrg --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
+      "Arguments": "new webapi -au SingleOrg --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -831,7 +816,7 @@
     },
     "MinimalSingleOrgProgramMain": {
       "Template": "webapi",
-      "Arguments": "new webapi -minimal --use-program-main -au SingleOrg --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
+      "Arguments": "new webapi --use-program-main -au SingleOrg --aad-instance https://login.microsoftonline.com/ --domain fake-aad-domain.onmicrosoft.com --client-id db33c356-12cc-4953-9167-00ad56c2e8b2 --tenant-id 7e511586-66ec-4108-bc9c-a68dee0dc2aa",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -843,7 +828,18 @@
     },
     "Minimal": {
       "Template": "webapi",
-      "Arguments": "new webapi -minimal -au None",
+      "Arguments": "new webapi -au None",
+      "Files": [
+        "appsettings.Development.json",
+        "appsettings.json",
+        "Program.cs",
+        "Properties/launchSettings.json"
+      ],
+      "AuthOption": "None"
+    },
+    "MinimalExplicit": {
+      "Template": "webapi",
+      "Arguments": "new webapi --use-minimal-apis",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -854,7 +850,7 @@
     },
     "MinimalProgramMain": {
       "Template": "webapi",
-      "Arguments": "new webapi -minimal --use-program-main -au None",
+      "Arguments": "new webapi --use-program-main -au None",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -866,7 +862,7 @@
     },
     "Windows": {
       "Template": "webapi",
-      "Arguments": "new webapi -au Windows",
+      "Arguments": "new webapi -controllers -au Windows",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -879,7 +875,7 @@
     },
     "WindowsProgramMain": {
       "Template": "webapi",
-      "Arguments": "new webapi -au Windows --use-program-main",
+      "Arguments": "new webapi -controllers -au Windows --use-program-main",
       "Files": [
         "appsettings.Development.json",
         "appsettings.json",
@@ -1525,274 +1521,6 @@
       ]
     }
   },
-  "blazorserver": {
-    "Individual": {
-      "Template": "blazorserver",
-      "Arguments": "new blazorserver -au Individual",
-      "Files": [
-        "app.db",
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs",
-        "_Imports.razor",
-        "Areas/Identity/Pages/Account/LogOut.cshtml",
-        "Areas/Identity/Pages/Shared/_LoginPartial.cshtml",
-        "Areas/Identity/RevalidatingIdentityAuthenticationStateProvider.cs",
-        "Data/ApplicationDbContext.cs",
-        "Data/WeatherForecast.cs",
-        "Data/WeatherForecastService.cs",
-        "Data/Migrations/00000000000000_CreateIdentitySchema.cs",
-        "Data/Migrations/00000000000000_CreateIdentitySchema.Designer.cs",
-        "Data/Migrations/ApplicationDbContextModelSnapshot.cs",
-        "Pages/Counter.razor",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Pages/FetchData.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "Properties/launchSettings.json",
-        "Shared/LoginDisplay.razor",
-        "Shared/MainLayout.razor",
-        "Shared/MainLayout.razor.css",
-        "Shared/NavMenu.razor",
-        "Shared/NavMenu.razor.css",
-        "wwwroot/favicon.png",
-        "wwwroot/css/site.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "wwwroot/css/open-iconic/FONT-LICENSE",
-        "wwwroot/css/open-iconic/ICON-LICENSE",
-        "wwwroot/css/open-iconic/README.md",
-        "wwwroot/css/open-iconic/font/css/open-iconic-bootstrap.min.css",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.eot",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.otf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.svg",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.ttf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.woff"
-      ]
-    },
-    "IndividualB2C": {
-      "Template": "blazorserver",
-      "Arguments": "new blazorserver -au IndividualB2C",
-      "Files": [
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs",
-        "_Imports.razor",
-        "Data/WeatherForecast.cs",
-        "Data/WeatherForecastService.cs",
-        "Pages/Counter.razor",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Pages/FetchData.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "Properties/launchSettings.json",
-        "Shared/LoginDisplay.razor",
-        "Shared/MainLayout.razor",
-        "Shared/MainLayout.razor.css",
-        "Shared/NavMenu.razor",
-        "Shared/NavMenu.razor.css",
-        "wwwroot/favicon.png",
-        "wwwroot/css/site.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "wwwroot/css/open-iconic/FONT-LICENSE",
-        "wwwroot/css/open-iconic/ICON-LICENSE",
-        "wwwroot/css/open-iconic/README.md",
-        "wwwroot/css/open-iconic/font/css/open-iconic-bootstrap.min.css",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.eot",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.otf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.svg",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.ttf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.woff"
-      ]
-    },
-    "MultiOrg": {
-      "Template": "blazorserver",
-      "Arguments": "new blazorserver -au MultiOrg",
-      "Files": [
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs",
-        "_Imports.razor",
-        "Data/WeatherForecast.cs",
-        "Data/WeatherForecastService.cs",
-        "Pages/Counter.razor",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Pages/FetchData.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "Properties/launchSettings.json",
-        "Shared/LoginDisplay.razor",
-        "Shared/MainLayout.razor",
-        "Shared/MainLayout.razor.css",
-        "Shared/NavMenu.razor",
-        "Shared/NavMenu.razor.css",
-        "wwwroot/favicon.png",
-        "wwwroot/css/site.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "wwwroot/css/open-iconic/FONT-LICENSE",
-        "wwwroot/css/open-iconic/ICON-LICENSE",
-        "wwwroot/css/open-iconic/README.md",
-        "wwwroot/css/open-iconic/font/css/open-iconic-bootstrap.min.css",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.eot",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.otf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.svg",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.ttf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.woff"
-      ]
-    },
-    "None": {
-      "Template": "blazorserver",
-      "Arguments": "new blazorserver",
-      "Files": [
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs",
-        "_Imports.razor",
-        "Data/WeatherForecast.cs",
-        "Data/WeatherForecastService.cs",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Pages/Counter.razor",
-        "Pages/FetchData.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "Properties/launchSettings.json",
-        "Shared/MainLayout.razor",
-        "Shared/MainLayout.razor.css",
-        "Shared/NavMenu.razor",
-        "Shared/NavMenu.razor.css",
-        "wwwroot/favicon.png",
-        "wwwroot/css/site.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "wwwroot/css/open-iconic/FONT-LICENSE",
-        "wwwroot/css/open-iconic/ICON-LICENSE",
-        "wwwroot/css/open-iconic/README.md",
-        "wwwroot/css/open-iconic/font/css/open-iconic-bootstrap.min.css",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.eot",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.otf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.svg",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.ttf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.woff"
-      ]
-    },
-    "Empty": {
-      "Template": "blazorserver-empty",
-      "Arguments": "new blazorserver-empty",
-      "Files": [
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "MainLayout.razor",
-        "Program.cs",
-        "_Imports.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "Properties/launchSettings.json",
-        "wwwroot/css/site.css"
-      ]
-    },
-    "EmptyExcludeLaunchSettings": {
-      "Template": "blazorserver-empty",
-      "Arguments": "new blazorserver-empty --exclude-launch-settings",
-      "Files": [
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "MainLayout.razor",
-        "Program.cs",
-        "_Imports.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "wwwroot/css/site.css"
-      ]
-    },
-    "SingleOrg": {
-      "Template": "blazorserver",
-      "Arguments": "new blazorserver -au SingleOrg",
-      "Files": [
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs",
-        "_Imports.razor",
-        "Data/WeatherForecast.cs",
-        "Data/WeatherForecastService.cs",
-        "Pages/Counter.razor",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Pages/FetchData.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "Properties/launchSettings.json",
-        "Shared/LoginDisplay.razor",
-        "Shared/MainLayout.razor",
-        "Shared/MainLayout.razor.css",
-        "Shared/NavMenu.razor",
-        "Shared/NavMenu.razor.css",
-        "wwwroot/favicon.png",
-        "wwwroot/css/site.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "wwwroot/css/open-iconic/FONT-LICENSE",
-        "wwwroot/css/open-iconic/ICON-LICENSE",
-        "wwwroot/css/open-iconic/README.md",
-        "wwwroot/css/open-iconic/font/css/open-iconic-bootstrap.min.css",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.eot",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.otf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.svg",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.ttf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.woff"
-      ]
-    },
-    "Windows": {
-      "Template": "blazorserver",
-      "Arguments": "new blazorserver -au Windows",
-      "Files": [
-        "App.razor",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs",
-        "_Imports.razor",
-        "Data/WeatherForecast.cs",
-        "Data/WeatherForecastService.cs",
-        "Pages/Counter.razor",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Pages/FetchData.razor",
-        "Pages/Index.razor",
-        "Pages/_Host.cshtml",
-        "Properties/launchSettings.json",
-        "Shared/LoginDisplay.razor",
-        "Shared/MainLayout.razor",
-        "Shared/MainLayout.razor.css",
-        "Shared/NavMenu.razor",
-        "Shared/NavMenu.razor.css",
-        "wwwroot/favicon.png",
-        "wwwroot/css/site.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css",
-        "wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "wwwroot/css/open-iconic/FONT-LICENSE",
-        "wwwroot/css/open-iconic/ICON-LICENSE",
-        "wwwroot/css/open-iconic/README.md",
-        "wwwroot/css/open-iconic/font/css/open-iconic-bootstrap.min.css",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.eot",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.otf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.svg",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.ttf",
-        "wwwroot/css/open-iconic/font/fonts/open-iconic.woff"
-      ]
-    }
-  },
   "worker": {
     "None": {
       "Template": "worker",
@@ -1803,103 +1531,6 @@
         "appsettings.json",
         "Program.cs",
         "Worker.cs"
-      ]
-    }
-  },
-  "angular": {
-    "None": {
-      "Template": "angular",
-      "Arguments": "new angular",
-      "Files": [
-        "ClientApp/src/app/counter/counter.component.html",
-        "ClientApp/src/app/counter/counter.component.spec.ts",
-        "ClientApp/src/app/counter/counter.component.ts",
-        "ClientApp/src/app/fetch-data/fetch-data.component.html",
-        "ClientApp/src/app/fetch-data/fetch-data.component.ts",
-        "ClientApp/src/app/home/home.component.html",
-        "ClientApp/src/app/home/home.component.ts",
-        "ClientApp/src/app/nav-menu/nav-menu.component.css",
-        "ClientApp/src/app/nav-menu/nav-menu.component.html",
-        "ClientApp/src/app/nav-menu/nav-menu.component.ts",
-        "ClientApp/src/app/app.component.html",
-        "ClientApp/src/app/app.component.ts",
-        "ClientApp/src/app/app.module.ts",
-        "ClientApp/src/app/app.server.module.ts",
-        "ClientApp/src/assets/.gitkeep",
-        "ClientApp/src/environments/environment.prod.ts",
-        "ClientApp/src/environments/environment.ts",
-        "ClientApp/src/index.html",
-        "ClientApp/src/main.ts",
-        "ClientApp/src/polyfills.ts",
-        "ClientApp/src/styles.css",
-        "ClientApp/src/test.ts",
-        "ClientApp/.editorconfig",
-        "ClientApp/.gitignore",
-        "ClientApp/angular.json",
-        "ClientApp/aspnetcore-https.js",
-        "ClientApp/karma.conf.js",
-        "ClientApp/package-lock.json",
-        "ClientApp/package.json",
-        "ClientApp/proxy.conf.js",
-        "ClientApp/README.md",
-        "ClientApp/tsconfig.json",
-        "ClientApp/tsconfig.app.json",
-        "ClientApp/tsconfig.spec.json",
-        "WeatherForecast.cs",
-        "Controllers/WeatherForecastController.cs",
-        "Pages/_ViewImports.cshtml",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Properties/launchSettings.json",
-        "wwwroot/favicon.ico",
-        ".gitignore",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs"
-      ]
-    }
-  },
-  "react": {
-    "None": {
-      "Template": "react",
-      "Arguments": "new react",
-      "Files": [
-        "ClientApp/public/favicon.ico",
-        "ClientApp/public/index.html",
-        "ClientApp/public/manifest.webmanifest",
-        "ClientApp/src/components/Counter.js",
-        "ClientApp/src/components/FetchData.js",
-        "ClientApp/src/components/Home.js",
-        "ClientApp/src/components/Layout.js",
-        "ClientApp/src/components/NavMenu.css",
-        "ClientApp/src/components/NavMenu.js",
-        "ClientApp/src/custom.css",
-        "ClientApp/src/App.js",
-        "ClientApp/src/App.test.js",
-        "ClientApp/src/AppRoutes.js",
-        "ClientApp/src/index.js",
-        "ClientApp/src/reportWebVitals.js",
-        "ClientApp/src/serviceWorkerRegistration.js",
-        "ClientApp/src/service-worker.js",
-        "ClientApp/src/setupProxy.js",
-        "ClientApp/.env",
-        "ClientApp/.env.development",
-        "ClientApp/.gitignore",
-        "ClientApp/aspnetcore-https.js",
-        "ClientApp/aspnetcore-react.js",
-        "ClientApp/package-lock.json",
-        "ClientApp/package.json",
-        "ClientApp/README.md",
-        "WeatherForecast.cs",
-        "Controllers/WeatherForecastController.cs",
-        "Pages/_ViewImports.cshtml",
-        "Pages/Error.cshtml",
-        "Pages/Error.cshtml.cs",
-        "Properties/launchSettings.json",
-        ".gitignore",
-        "appsettings.Development.json",
-        "appsettings.json",
-        "Program.cs"
       ]
     }
   },
@@ -2037,43 +1668,6 @@
         "wwwroot/sample-data/weather.json"
       ]
     },
-    "Hosted": {
-      "Template": "blazorwasm",
-      "Arguments": "new blazorwasm --hosted",
-      "Files": [
-        "Client/_Imports.razor",
-        "Client/App.razor",
-        "Client/Program.cs",
-        "Client/Pages/Counter.razor",
-        "Client/Pages/FetchData.razor",
-        "Client/Pages/Index.razor",
-        "Client/Properties/launchSettings.json",
-        "Client/Shared/MainLayout.razor",
-        "Client/Shared/MainLayout.razor.css",
-        "Client/Shared/NavMenu.razor",
-        "Client/Shared/NavMenu.razor.css",
-        "Client/wwwroot/css/app.css",
-        "Client/wwwroot/favicon.png",
-        "Client/wwwroot/icon-192.png",
-        "Client/wwwroot/index.html",
-        "Client/wwwroot/css/bootstrap/bootstrap.min.css",
-        "Client/wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.css",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.json",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.min.css",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.scss",
-        "Client/wwwroot/css/bootstrap-icons/fonts/bootstrap-icons.woff",
-        "Client/wwwroot/css/bootstrap-icons/fonts/bootstrap-icons.woff2",
-        "Server/Controllers/WeatherForecastController.cs",
-        "Server/Pages/Error.cshtml",
-        "Server/Pages/Error.cshtml.cs",
-        "Server/Properties/launchSettings.json",
-        "Server/appsettings.Development.json",
-        "Server/appsettings.json",
-        "Server/Program.cs",
-        "Shared/WeatherForecast.cs"
-      ]
-    },
     "PWA": {
       "Template": "blazorwasm",
       "Arguments": "new blazorwasm --pwa",
@@ -2106,47 +1700,6 @@
         "wwwroot/css/bootstrap-icons/fonts/bootstrap-icons.woff",
         "wwwroot/css/bootstrap-icons/fonts/bootstrap-icons.woff2",
         "wwwroot/sample-data/weather.json"
-      ]
-    },
-    "PWAHosted": {
-      "Template": "blazorwasm",
-      "Arguments": "new blazorwasm --pwa --hosted",
-      "Files": [
-        "Client/_Imports.razor",
-        "Client/App.razor",
-        "Client/Program.cs",
-        "Client/Pages/Counter.razor",
-        "Client/Pages/FetchData.razor",
-        "Client/Pages/Index.razor",
-        "Client/Properties/launchSettings.json",
-        "Client/Shared/MainLayout.razor",
-        "Client/Shared/MainLayout.razor.css",
-        "Client/Shared/NavMenu.razor",
-        "Client/Shared/NavMenu.razor.css",
-        "Client/wwwroot/css/app.css",
-        "Client/wwwroot/favicon.png",
-        "Client/wwwroot/icon-192.png",
-        "Client/wwwroot/icon-512.png",
-        "Client/wwwroot/index.html",
-        "Client/wwwroot/manifest.webmanifest",
-        "Client/wwwroot/service-worker.js",
-        "Client/wwwroot/service-worker.published.js",
-        "Client/wwwroot/css/bootstrap/bootstrap.min.css",
-        "Client/wwwroot/css/bootstrap/bootstrap.min.css.map",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.css",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.json",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.min.css",
-        "Client/wwwroot/css/bootstrap-icons/bootstrap-icons.scss",
-        "Client/wwwroot/css/bootstrap-icons/fonts/bootstrap-icons.woff",
-        "Client/wwwroot/css/bootstrap-icons/fonts/bootstrap-icons.woff2",
-        "Server/Controllers/WeatherForecastController.cs",
-        "Server/Pages/Error.cshtml",
-        "Server/Pages/Error.cshtml.cs",
-        "Server/Properties/launchSettings.json",
-        "Server/appsettings.Development.json",
-        "Server/appsettings.json",
-        "Server/Program.cs",
-        "Shared/WeatherForecast.cs"
       ]
     },
     "ExcludeLaunchSettings": {
@@ -2194,25 +1747,6 @@
         "Program.cs"
       ]
     },
-    "Hosted": {
-      "Template": "blazorwasm-empty",
-      "Arguments": "new blazorwasm-empty --hosted",
-      "Files": [
-        "Client/_Imports.razor",
-        "Client/App.razor",
-        "Client/MainLayout.razor",
-        "Client/Program.cs",
-        "Client/Pages/Index.razor",
-        "Client/Properties/launchSettings.json",
-        "Client/wwwroot/index.html",
-        "Client/wwwroot/css/app.css",
-        "Server/Properties/launchSettings.json",
-        "Server/appsettings.Development.json",
-        "Server/appsettings.json",
-        "Server/Program.cs",
-        "Shared/SharedClass.cs"
-      ]
-    },
     "PWA": {
       "Template": "blazorwasm-empty",
       "Arguments": "new blazorwasm-empty --pwa",
@@ -2245,29 +1779,6 @@
         "Program.cs"
       ]
     },
-    "PWAHosted": {
-      "Template": "blazorwasm-empty",
-      "Arguments": "new blazorwasm-empty --pwa --hosted",
-      "Files": [
-        "Client/_Imports.razor",
-        "Client/App.razor",
-        "Client/MainLayout.razor",
-        "Client/Program.cs",
-        "Client/Pages/Index.razor",
-        "Client/Properties/launchSettings.json",
-        "Client/wwwroot/icon-512.png",
-        "Client/wwwroot/index.html",
-        "Client/wwwroot/manifest.webmanifest",
-        "Client/wwwroot/service-worker.js",
-        "Client/wwwroot/service-worker.published.js",
-        "Client/wwwroot/css/app.css",
-        "Server/Properties/launchSettings.json",
-        "Server/appsettings.Development.json",
-        "Server/appsettings.json",
-        "Server/Program.cs",
-        "Shared/SharedClass.cs"
-      ]
-    },
     "ExcludeLaunchSettings": {
       "Template": "blazorwasm-empty",
       "Arguments": "new blazorwasm-empty --exclude-launch-settings",
@@ -2279,23 +1790,6 @@
         "App.razor",
         "MainLayout.razor",
         "Program.cs"
-      ]
-    },
-    "ExcludeLaunchSettingsHosted": {
-      "Template": "blazorwasm-empty",
-      "Arguments": "new blazorwasm-empty --hosted --exclude-launch-settings",
-      "Files": [
-        "Client/_Imports.razor",
-        "Client/App.razor",
-        "Client/MainLayout.razor",
-        "Client/Program.cs",
-        "Client/Pages/Index.razor",
-        "Client/wwwroot/index.html",
-        "Client/wwwroot/css/app.css",
-        "Server/appsettings.Development.json",
-        "Server/appsettings.json",
-        "Server/Program.cs",
-        "Shared/SharedClass.cs"
       ]
     }
   }

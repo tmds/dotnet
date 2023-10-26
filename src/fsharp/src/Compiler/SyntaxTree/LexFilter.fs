@@ -736,7 +736,9 @@ type LexFilterImpl (
     //--------------------------------------------------------------------------
 
     let relaxWhitespace2 = lexbuf.SupportsFeature LanguageFeature.RelaxWhitespace2
-    let strictIndentation = lexbuf.SupportsFeature LanguageFeature.StrictIndentation
+
+    let strictIndentation =
+        lexbuf.StrictIndentation |> Option.defaultWith (fun _ -> lexbuf.SupportsFeature LanguageFeature.StrictIndentation)
 
     //let indexerNotationWithoutDot = lexbuf.SupportsFeature LanguageFeature.IndexerNotationWithoutDot
 
@@ -749,6 +751,9 @@ type LexFilterImpl (
             | _, CtxtVanilla _ :: rest -> undentationLimit strict rest
 
             |  CtxtSeqBlock(FirstInSeqBlock, _, _), (CtxtDo _ as limitCtxt) :: CtxtSeqBlock _ :: (CtxtTypeDefns _ | CtxtModuleBody _) :: _ ->
+                PositionWithColumn(limitCtxt.StartPos, limitCtxt.StartCol + 1)
+
+            |  CtxtSeqBlock(FirstInSeqBlock, _, _), CtxtWithAsAugment _ :: (CtxtTypeDefns _ as limitCtxt) :: _ ->
                 PositionWithColumn(limitCtxt.StartPos, limitCtxt.StartCol + 1)
 
             | _, CtxtSeqBlock _ :: rest when not strict -> undentationLimit strict rest
@@ -1560,9 +1565,11 @@ type LexFilterImpl (
             | INTERP_STRING_PART _ ->
                 pushCtxt tokenTup (CtxtParen (token, tokenTup.LexbufState.EndPos))
                 pushCtxtSeqBlock tokenTup NoAddBlockEnd
+            | INTERP_STRING_END _ -> ()
             | _ ->
                 // Queue a dummy token at this position to check if any closing rules apply
                 delayToken(pool.UseLocation(tokenTup, ODUMMY token))
+
             returnToken tokenLexbufState token
 
         // Balancing rule. Encountering a 'end' can balance with a 'with' but only when not offside
@@ -2308,7 +2315,7 @@ type LexFilterImpl (
             if debug then dprintf "WITH\n"
             if debug then dprintf "WITH --> NO MATCH, pushing CtxtWithAsAugment (type augmentation), stack = %A" stack
             pushCtxt tokenTup (CtxtWithAsAugment tokenStartPos)
-            pushCtxtSeqBlock tokenTup AddBlockEnd
+            tryPushCtxtSeqBlock tokenTup AddBlockEnd
             returnToken tokenLexbufState token
 
         | FUNCTION, _ ->

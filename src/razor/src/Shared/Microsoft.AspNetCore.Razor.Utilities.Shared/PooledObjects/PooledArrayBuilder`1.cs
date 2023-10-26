@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.AspNetCore.Razor.PooledObjects;
@@ -28,6 +29,28 @@ internal ref struct PooledArrayBuilder<T>
     {
         _pool = pool ?? ArrayBuilderPool<T>.Default;
         _capacity = capacity;
+    }
+
+    public readonly T this[int i]
+    {
+        get
+        {
+            if (_builder is null || Count <= i)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            return _builder[i];
+        }
+        set
+        {
+            if (_builder is null || Count <= i)
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            _builder[i] = value;
+        }
     }
 
     public void Dispose()
@@ -70,12 +93,22 @@ internal ref struct PooledArrayBuilder<T>
         }
     }
 
+    public readonly void RemoveAt(int index)
+    {
+        if (_builder is null || Count <= index)
+        {
+            throw new IndexOutOfRangeException();
+        }
+
+        _builder.RemoveAt(index);
+    }
+
     private readonly ImmutableArray<T>.Builder GetBuilder()
     {
         var result = _pool.Get();
         if (_capacity is int capacity)
         {
-            result.SetCapacityIfNeeded(capacity);
+            result.SetCapacityIfLarger(capacity);
         }
 
         return result;
@@ -89,38 +122,44 @@ internal ref struct PooledArrayBuilder<T>
     ///  If <see cref="ImmutableArray{T}.Builder.Capacity"/> equals <see cref="Count"/>, the
     ///  internal array will be extracted as an <see cref="ImmutableArray{T}"/> without copying
     ///  the contents. Otherwise, the contents will be copied into a new array. The collection
-    ///  will then be set to a zero length array.
+    ///  will then be set to a zero-length array.
     /// </remarks>
     /// <returns>An immutable array.</returns>
     public readonly ImmutableArray<T> DrainToImmutable()
-    {
-#if NET8_0_OR_GREATER
-        return _builder?.DrainToImmutable() ?? ImmutableArray<T>.Empty;
-#else
-        if (_builder is not { } builder)
-        {
-            return ImmutableArray<T>.Empty;
-        }
-
-        if (builder.Count == 0)
-        {
-            return ImmutableArray<T>.Empty;
-        }
-
-        if (builder.Count == builder.Capacity)
-        {
-            return builder.MoveToImmutable();
-        }
-
-        var result = builder.ToImmutable();
-        builder.Clear();
-        return result;
-#endif
-    }
+        => _builder?.DrainToImmutable() ?? ImmutableArray<T>.Empty;
 
     public readonly ImmutableArray<T> ToImmutable()
         => _builder?.ToImmutable() ?? ImmutableArray<T>.Empty;
 
     public readonly T[] ToArray()
         => _builder?.ToArray() ?? Array.Empty<T>();
+
+    public void Push(T item)
+    {
+        this.Add(item);
+    }
+
+    public readonly T Peek()
+    {
+        return this[^1];
+    }
+
+    public readonly T Pop()
+    {
+        var item = this[^1];
+        RemoveAt(Count - 1);
+        return item;
+    }
+
+    public readonly bool TryPop([MaybeNullWhen(false)] out T item)
+    {
+        if (Count == 0)
+        {
+            item = default;
+            return false;
+        }
+
+        item = Pop();
+        return true;
+    }
 }

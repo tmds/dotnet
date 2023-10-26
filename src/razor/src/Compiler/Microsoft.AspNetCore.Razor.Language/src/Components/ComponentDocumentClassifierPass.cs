@@ -6,7 +6,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
@@ -123,10 +122,16 @@ internal class ComponentDocumentClassifierPass : DocumentClassifierPassBase
                     continue;
                 }
 
+                // The first token is the type parameter's name, the rest are its constraints, if any.
+                var typeParameter = typeParamNode.Tokens.First();
+                var constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault();
+
                 @class.TypeParameters.Add(new TypeParameter()
                 {
-                    ParameterName = typeParamNode.Tokens.First().Content,
-                    Constraints = typeParamNode.Tokens.Skip(1).FirstOrDefault()?.Content
+                    ParameterName = typeParameter.Content,
+                    ParameterNameSource = typeParameter.Source,
+                    Constraints = constraints?.Content,
+                    ConstraintsSource = constraints?.Source,
                 });
             }
 

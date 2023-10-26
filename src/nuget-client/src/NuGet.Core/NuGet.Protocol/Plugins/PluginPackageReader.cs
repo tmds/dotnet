@@ -513,7 +513,7 @@ namespace NuGet.Protocol.Plugins
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var frameworks = new HashSet<NuGetFramework>(new NuGetFrameworkFullComparer());
+            var frameworks = new HashSet<NuGetFramework>(NuGetFrameworkFullComparer.Instance);
 
             frameworks.UnionWith((await GetLibItemsAsync(cancellationToken)).Select(g => g.TargetFramework));
 
@@ -990,7 +990,7 @@ namespace NuGet.Protocol.Plugins
             string folder,
             CancellationToken cancellationToken)
         {
-            var groups = new Dictionary<NuGetFramework, List<string>>(new NuGetFrameworkFullComparer());
+            var groups = new Dictionary<NuGetFramework, List<string>>(NuGetFrameworkFullComparer.Instance);
 
             var isContentFolder = StringComparer.OrdinalIgnoreCase.Equals(folder, PackagingConstants.Folders.Content);
             var allowSubFolders = true;
@@ -1122,12 +1122,12 @@ namespace NuGet.Protocol.Plugins
 
         public override Task<PrimarySignature> GetPrimarySignatureAsync(CancellationToken token)
         {
-            return Task.FromResult<PrimarySignature>(null);
+            return TaskResult.Null<PrimarySignature>();
         }
 
         public override Task<bool> IsSignedAsync(CancellationToken token)
         {
-            return Task.FromResult(false);
+            return TaskResult.False;
         }
 
         public override Task ValidateIntegrityAsync(SignatureContent signatureContent, CancellationToken token)

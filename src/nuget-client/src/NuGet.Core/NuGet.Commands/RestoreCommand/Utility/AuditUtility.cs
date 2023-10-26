@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
+using NuGet.DependencyResolver;
 using NuGet.LibraryModel;
 using NuGet.Packaging.Core;
 using NuGet.Protocol.Model;
@@ -17,7 +18,7 @@ using NuGet.Versioning;
 
 namespace NuGet.Commands.Restore.Utility
 {
-    internal struct AuditUtility
+    internal class AuditUtility
     {
         private readonly EnabledValue _auditEnabled;
         private readonly ProjectModel.RestoreAuditProperties _restoreAuditProperties;
@@ -25,6 +26,25 @@ namespace NuGet.Commands.Restore.Utility
         private readonly IEnumerable<RestoreTargetGraph> _targetGraphs;
         private readonly IReadOnlyList<IVulnerabilityInformationProvider> _vulnerabilityInfoProviders;
         private readonly ILogger _logger;
+
+        internal int MinSeverity { get; }
+        internal NuGetAuditMode AuditMode { get; }
+        internal List<string>? DirectPackagesWithAdvisory { get; private set; }
+        internal List<string>? TransitivePackagesWithAdvisory { get; private set; }
+        internal int Sev0DirectMatches { get; private set; }
+        internal int Sev1DirectMatches { get; private set; }
+        internal int Sev2DirectMatches { get; private set; }
+        internal int Sev3DirectMatches { get; private set; }
+        internal int InvalidSevDirectMatches { get; private set; }
+        internal int Sev0TransitiveMatches { get; private set; }
+        internal int Sev1TransitiveMatches { get; private set; }
+        internal int Sev2TransitiveMatches { get; private set; }
+        internal int Sev3TransitiveMatches { get; private set; }
+        internal int InvalidSevTransitiveMatches { get; private set; }
+        internal double? DownloadDurationSeconds { get; private set; }
+        internal double? CheckPackagesDurationSeconds { get; private set; }
+        internal double? GenerateOutputDurationSeconds { get; private set; }
+        internal int SourcesWithVulnerabilityData { get; private set; }
 
         public AuditUtility(
             EnabledValue auditEnabled,
@@ -40,11 +60,23 @@ namespace NuGet.Commands.Restore.Utility
             _targetGraphs = graphs;
             _vulnerabilityInfoProviders = vulnerabilityInformationProviders;
             _logger = logger;
+
+            MinSeverity = ParseAuditLevel();
+            AuditMode = ParseAuditMode();
         }
 
         public async Task CheckPackageVulnerabilitiesAsync(CancellationToken cancellationToken)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             GetVulnerabilityInfoResult? allVulnerabilityData = await GetAllVulnerabilityDataAsync(cancellationToken);
+            stopwatch.Stop();
+            DownloadDurationSeconds = stopwatch.Elapsed.TotalSeconds;
+
+            if (allVulnerabilityData?.Exceptions is not null)
+            {
+                ReplayErrors(allVulnerabilityData.Exceptions);
+            }
+
             if (allVulnerabilityData is null || !AnyVulnerabilityDataFound(allVulnerabilityData.KnownVulnerabilities))
             {
                 if (_auditEnabled == EnabledValue.ExplicitOptIn)
@@ -57,12 +89,7 @@ namespace NuGet.Commands.Restore.Utility
                 return;
             }
 
-            if (allVulnerabilityData.Exceptions != null)
-            {
-                ReplayErrors(allVulnerabilityData.Exceptions);
-            }
-
-            if (allVulnerabilityData.KnownVulnerabilities != null)
+            if (allVulnerabilityData.KnownVulnerabilities is not null)
             {
                 CheckPackageVulnerabilities(allVulnerabilityData.KnownVulnerabilities);
             }
@@ -92,43 +119,89 @@ namespace NuGet.Commands.Restore.Utility
             foreach (Exception exception in exceptions.InnerExceptions)
             {
                 var messageText = string.Format(Strings.Error_VulnerabilityDataFetch, exception.Message);
-                RestoreLogMessage logMessage = RestoreLogMessage.CreateError(NuGetLogCode.NU1900, messageText);
+                RestoreLogMessage logMessage = RestoreLogMessage.CreateWarning(NuGetLogCode.NU1900, messageText);
+                logMessage.ProjectPath = _projectFullPath;
                 _logger.Log(logMessage);
             }
         }
 
         private void CheckPackageVulnerabilities(IReadOnlyList<IReadOnlyDictionary<string, IReadOnlyList<PackageVulnerabilityInfo>>> knownVulnerabilities)
         {
-            Dictionary<PackageIdentity, Dictionary<PackageVulnerabilityInfo, List<string>>>? packagesWithKnownVulnerabilities =
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            Dictionary<PackageIdentity, PackageAuditInfo>? packagesWithKnownVulnerabilities =
                 FindPackagesWithKnownVulnerabilities(knownVulnerabilities);
+            stopwatch.Stop();
+            CheckPackagesDurationSeconds = stopwatch.Elapsed.TotalSeconds;
 
             if (packagesWithKnownVulnerabilities == null) return;
+
+            stopwatch.Restart();
+
+            int directPackageCount = packagesWithKnownVulnerabilities.Values.Count(p => p.IsDirect);
+            DirectPackagesWithAdvisory = new(capacity: directPackageCount);
+            TransitivePackagesWithAdvisory = new(capacity: packagesWithKnownVulnerabilities.Count - directPackageCount);
 
             // no-op checks DGSpec hash, which means the order of everything must be deterministic.
             // .NET Framework and .NET Standard don't have Deconstructor methods for KeyValuePair
             foreach (var kvp1 in packagesWithKnownVulnerabilities.OrderBy(p => p.Key.Id))
             {
                 PackageIdentity package = kvp1.Key;
-                Dictionary<PackageVulnerabilityInfo, List<string>> vulnerabilities = kvp1.Value;
-                foreach (var kvp2 in vulnerabilities.OrderBy(v => v.Key.Url.OriginalString))
+                PackageAuditInfo auditInfo = kvp1.Value;
+
+                if (auditInfo.IsDirect || AuditMode == NuGetAuditMode.All)
                 {
-                    PackageVulnerabilityInfo vulnerability = kvp2.Key;
-                    List<string> affectedGraphs = kvp2.Value;
-                    (string severityLabel, NuGetLogCode logCode) = GetSeverityLabelAndCode(vulnerability.Severity);
-                    string message = string.Format(Strings.Warning_PackageWithKnownVulnerability,
-                        package.Id,
-                        package.Version.ToNormalizedString(),
-                        severityLabel,
-                        vulnerability.Url);
-                    RestoreLogMessage restoreLogMessage =
-                        RestoreLogMessage.CreateWarning(logCode,
-                        message,
-                        package.Id,
-                        affectedGraphs.OrderBy(s => s).ToArray());
-                    restoreLogMessage.ProjectPath = _projectFullPath;
-                    _logger.Log(restoreLogMessage);
+                    foreach (var kvp2 in auditInfo.GraphsPerVulnerability.OrderBy(v => v.Key.Url.OriginalString))
+                    {
+                        PackageVulnerabilityInfo vulnerability = kvp2.Key;
+                        List<string> affectedGraphs = kvp2.Value;
+                        (string severityLabel, NuGetLogCode logCode) = GetSeverityLabelAndCode(vulnerability.Severity);
+                        string message = string.Format(Strings.Warning_PackageWithKnownVulnerability,
+                            package.Id,
+                            package.Version.ToNormalizedString(),
+                            severityLabel,
+                            vulnerability.Url);
+                        RestoreLogMessage restoreLogMessage =
+                            RestoreLogMessage.CreateWarning(logCode,
+                            message,
+                            package.Id,
+                            affectedGraphs.OrderBy(s => s).ToArray());
+                        restoreLogMessage.ProjectPath = _projectFullPath;
+                        _logger.Log(restoreLogMessage);
+                    }
+                }
+
+                if (auditInfo.IsDirect)
+                {
+                    DirectPackagesWithAdvisory.Add(package.Id);
+
+                    foreach (var advisory in auditInfo.GraphsPerVulnerability.Keys)
+                    {
+                        int severity = advisory.Severity;
+                        if (severity == 0) { Sev0DirectMatches++; }
+                        else if (severity == 1) { Sev1DirectMatches++; }
+                        else if (severity == 2) { Sev2DirectMatches++; }
+                        else if (severity == 3) { Sev3DirectMatches++; }
+                        else { InvalidSevDirectMatches++; }
+                    }
+                }
+                else
+                {
+                    TransitivePackagesWithAdvisory.Add(package.Id);
+
+                    foreach (var advisory in auditInfo.GraphsPerVulnerability.Keys)
+                    {
+                        int severity = advisory.Severity;
+                        if (severity == 0) { Sev0TransitiveMatches++; }
+                        else if (severity == 1) { Sev1TransitiveMatches++; }
+                        else if (severity == 2) { Sev2TransitiveMatches++; }
+                        else if (severity == 3) { Sev3TransitiveMatches++; }
+                        else { InvalidSevTransitiveMatches++; }
+                    }
                 }
             }
+
+            stopwatch.Stop();
+            GenerateOutputDurationSeconds = stopwatch.Elapsed.TotalSeconds;
         }
 
         private static List<PackageVulnerabilityInfo>? GetKnownVulnerabilities(
@@ -165,42 +238,41 @@ namespace NuGet.Commands.Restore.Utility
         {
             switch (severity)
             {
-                case 1:
+                case 0:
                     return (Strings.Vulnerability_Severity_1, NuGetLogCode.NU1901);
-                case 2:
+                case 1:
                     return (Strings.Vulnerability_Severity_2, NuGetLogCode.NU1902);
-                case 3:
+                case 2:
                     return (Strings.Vulnerability_Severity_3, NuGetLogCode.NU1903);
-                case 4:
+                case 3:
                     return (Strings.Vulnerability_Severity_4, NuGetLogCode.NU1904);
                 default:
                     return (Strings.Vulnerability_Severity_unknown, NuGetLogCode.NU1900);
             }
         }
 
-        private Dictionary<PackageIdentity, Dictionary<PackageVulnerabilityInfo, List<string>>>? FindPackagesWithKnownVulnerabilities(
+        private Dictionary<PackageIdentity, PackageAuditInfo>? FindPackagesWithKnownVulnerabilities(
             IReadOnlyList<IReadOnlyDictionary<string, IReadOnlyList<PackageVulnerabilityInfo>>> knownVulnerabilities)
         {
             // multi-targeting projects often use the same package across multiple TFMs, so group to reduce output spam.
-            Dictionary<PackageIdentity, Dictionary<PackageVulnerabilityInfo, List<string>>>? result = null;
-
-            int minSeverity = ParseAuditLevel();
-            NuGetAuditMode auditMode = ParseAuditMode();
+            Dictionary<PackageIdentity, PackageAuditInfo>? result = null;
 
             foreach (RestoreTargetGraph graph in _targetGraphs)
             {
-                foreach (ResolvedDependencyKey resolvedDependency in GetDependenciesToAudit(graph, auditMode))
-                {
-                    LibraryIdentity package = resolvedDependency.Child;
-                    List<PackageVulnerabilityInfo>? knownVulerabilitiesForPackage = GetKnownVulnerabilities(package.Name, package.Version, knownVulnerabilities);
+                GraphItem<RemoteResolveResult>? currentProject = graph.Graphs.FirstOrDefault()?.Item;
 
-                    if (knownVulerabilitiesForPackage?.Count() > 0)
+                foreach (GraphItem<RemoteResolveResult>? node in graph.Flattened.Where(r => r.Key.Type == LibraryType.Package))
+                {
+                    LibraryIdentity package = node.Key;
+                    List<PackageVulnerabilityInfo>? knownVulnerabilitiesForPackage = GetKnownVulnerabilities(package.Name, package.Version, knownVulnerabilities);
+
+                    if (knownVulnerabilitiesForPackage?.Count > 0)
                     {
                         PackageIdentity packageIdentity = new(package.Name, package.Version);
 
-                        foreach (PackageVulnerabilityInfo knownVulnerability in knownVulerabilitiesForPackage)
+                        foreach (PackageVulnerabilityInfo knownVulnerability in knownVulnerabilitiesForPackage)
                         {
-                            if (knownVulnerability.Severity < minSeverity)
+                            if (knownVulnerability.Severity < MinSeverity)
                             {
                                 continue;
                             }
@@ -210,22 +282,28 @@ namespace NuGet.Commands.Restore.Utility
                                 result = new();
                             }
 
-                            if (!result.TryGetValue(packageIdentity, out Dictionary<PackageVulnerabilityInfo, List<string>>? knownPackageVulnerabilities))
+                            if (!result.TryGetValue(packageIdentity, out PackageAuditInfo? auditInfo))
                             {
-                                knownPackageVulnerabilities = new();
-                                result.Add(packageIdentity, knownPackageVulnerabilities);
+                                auditInfo = new(packageIdentity);
+                                result.Add(packageIdentity, auditInfo);
                             }
 
-                            if (!knownPackageVulnerabilities.TryGetValue(knownVulnerability, out List<string>? affectedGraphs))
+                            if (!auditInfo.GraphsPerVulnerability.TryGetValue(knownVulnerability, out List<string>? affectedGraphs))
                             {
                                 affectedGraphs = new();
-                                knownPackageVulnerabilities.Add(knownVulnerability, affectedGraphs);
+                                auditInfo.GraphsPerVulnerability.Add(knownVulnerability, affectedGraphs);
                             }
 
                             // Multiple package sources might list the same known vulnerability, so de-dupe those too.
                             if (!affectedGraphs.Contains(graph.TargetGraphName))
                             {
                                 affectedGraphs.Add(graph.TargetGraphName);
+                            }
+
+                            if (!auditInfo.IsDirect &&
+                                currentProject?.Data.Dependencies.Any(d => string.Equals(d.Name, packageIdentity.Id, StringComparison.OrdinalIgnoreCase)) == true)
+                            {
+                                auditInfo.IsDirect = true;
                             }
                         }
                     }
@@ -258,6 +336,7 @@ namespace NuGet.Commands.Restore.Utility
 
                 if (result.KnownVulnerabilities != null)
                 {
+                    SourcesWithVulnerabilityData++;
                     if (knownVulnerabilities == null)
                     {
                         knownVulnerabilities = new();
@@ -290,34 +369,34 @@ namespace NuGet.Commands.Restore.Utility
 
             if (auditLevel == null)
             {
-                return 1;
+                return 0;
             }
 
             if (string.Equals("low", auditLevel, StringComparison.OrdinalIgnoreCase))
             {
-                return 1;
+                return 0;
             }
             if (string.Equals("moderate", auditLevel, StringComparison.OrdinalIgnoreCase))
             {
-                return 2;
+                return 1;
             }
             if (string.Equals("high", auditLevel, StringComparison.OrdinalIgnoreCase))
             {
-                return 3;
+                return 2;
             }
             if (string.Equals("critical", auditLevel, StringComparison.OrdinalIgnoreCase))
             {
-                return 4;
+                return 3;
             }
 
             string messageText = string.Format(Strings.Error_InvalidNuGetAuditLevelValue, auditLevel, "low, moderate, high, critical");
             RestoreLogMessage message = RestoreLogMessage.CreateError(NuGetLogCode.NU1014, messageText);
             message.ProjectPath = _projectFullPath;
             _logger.Log(message);
-            return 1;
+            return 0;
         }
 
-        private enum NuGetAuditMode { Unknown, Direct, All }
+        internal enum NuGetAuditMode { Unknown, Direct, All }
 
         private NuGetAuditMode ParseAuditMode()
         {
@@ -341,25 +420,6 @@ namespace NuGet.Commands.Restore.Utility
             message.ProjectPath = _projectFullPath;
             _logger.Log(message);
             return NuGetAuditMode.Unknown;
-        }
-
-        IEnumerable<ResolvedDependencyKey> GetDependenciesToAudit(RestoreTargetGraph graph, NuGetAuditMode auditMode)
-        {
-            if (auditMode == NuGetAuditMode.All)
-            {
-                return graph.ResolvedDependencies.Where(dep => dep.Child.Type == LibraryType.Package);
-            }
-
-            Debug.Assert(graph.Graphs.Count() <= 1);
-            LibraryIdentity? thisProject = graph.Graphs.FirstOrDefault()?.Item.Key;
-
-            if (thisProject == null)
-            {
-                return Enumerable.Empty<ResolvedDependencyKey>();
-            }
-
-            Debug.Assert(thisProject.Type == LibraryType.Project);
-            return graph.ResolvedDependencies.Where(dep => dep.Parent == thisProject && dep.Child.Type == LibraryType.Package);
         }
 
         internal enum EnabledValue
@@ -387,6 +447,43 @@ namespace NuGet.Commands.Restore.Utility
                 return EnabledValue.ExplicitOptOut;
             }
             return EnabledValue.Undefined;
+        }
+
+        internal static string GetString(EnabledValue enableAudit)
+        {
+            return enableAudit switch
+            {
+                EnabledValue.Undefined => nameof(EnabledValue.Undefined),
+                EnabledValue.ExplicitOptIn => nameof(EnabledValue.ExplicitOptIn),
+                EnabledValue.ExplicitOptOut => nameof(EnabledValue.ExplicitOptOut),
+                EnabledValue.ImplicitOptIn => nameof(EnabledValue.ImplicitOptIn),
+                _ => enableAudit.ToString()
+            };
+        }
+
+        internal static string GetString(NuGetAuditMode auditMode)
+        {
+            return auditMode switch
+            {
+                NuGetAuditMode.All => nameof(NuGetAuditMode.All),
+                NuGetAuditMode.Direct => nameof(NuGetAuditMode.Direct),
+                NuGetAuditMode.Unknown => nameof(NuGetAuditMode.Unknown),
+                _ => auditMode.ToString()
+            };
+        }
+
+        private class PackageAuditInfo
+        {
+            public PackageIdentity Identity { get; }
+            public bool IsDirect { get; set; }
+            public Dictionary<PackageVulnerabilityInfo, List<string>> GraphsPerVulnerability { get; }
+
+            public PackageAuditInfo(PackageIdentity identity)
+            {
+                Identity = identity;
+                IsDirect = false;
+                GraphsPerVulnerability = new();
+            }
         }
     }
 }
