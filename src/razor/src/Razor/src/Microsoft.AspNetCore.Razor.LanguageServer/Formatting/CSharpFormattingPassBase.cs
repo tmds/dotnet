@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
@@ -57,9 +58,20 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
 #if DEBUG
             var spanText = context.SourceText.GetSubText(mappingSpan).ToString();
 #endif
-            if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true))
+            if (!ShouldFormat(context, mappingSpan, allowImplicitStatements: true, out var owner))
             {
                 // We don't care about this range as this can potentially lead to incorrect scopes.
+                continue;
+            }
+
+            // Special case: We are looking for "significant locations" that should affect indentation, but
+            // single line explicit expressions shouldn't. If there are any at the start of a line, the next
+            // loop will find them. Sadly the ShouldFormat method is used in too many places, for too many
+            // different purposes, to put this check there.
+            if (owner is { Parent.Parent.Parent: CSharpExplicitExpressionSyntax explicitExpression } &&
+                explicitExpression.Span.AsRange(text) is { } exprRange &&
+                exprRange.Start.Line == exprRange.End.Line)
+            {
                 continue;
             }
 
@@ -266,7 +278,7 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
 
             var existingIndentationLength = indentations[line].ExistingIndentation;
             var spanToReplace = new TextSpan(context.SourceText.Lines[line].Start, existingIndentationLength);
-            var effectiveDesiredIndentation = context.GetIndentationString(indentation);
+            var effectiveDesiredIndentation = FormattingUtilities.GetIndentationString(indentation, context.Options.InsertSpaces, context.Options.TabSize);
             changes.Add(new TextChange(spanToReplace, effectiveDesiredIndentation));
         }
 
@@ -324,10 +336,13 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
         owner = FixOwnerToWorkaroundCompilerQuirks(owner);
         foundOwner = owner;
 
-        // special case: If we're formatting implicit statements, we want to treat the `@attribute` directive as one
-        // so that the C# definition of the attribute is formatted as C#
+        // Special case: If we're formatting implicit statements, we want to treat the `@attribute` directive and
+        // the `@typeparam` directive as one so that the C# content within them is formatted as C#
         if (allowImplicitStatements &&
-            IsAttributeDirective())
+            (
+                IsAttributeDirective() ||
+                IsTypeParamDirective()
+            ))
         {
             return true;
         }
@@ -437,6 +452,19 @@ internal abstract class CSharpFormattingPassBase : FormattingPassBase
                     directive.DirectiveDescriptor != null &&
                     directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine &&
                     directive.DirectiveDescriptor.Directive.Equals(AttributeDirective.Directive.Directive, StringComparison.Ordinal));
+        }
+
+        bool IsTypeParamDirective()
+        {
+            // E.g, (| is position)
+            //
+            // `@typeparam |T where T : IDisposable
+            //
+            return owner.AncestorsAndSelf().Any(
+                n => n is RazorDirectiveSyntax directive &&
+                    directive.DirectiveDescriptor != null &&
+                    directive.DirectiveDescriptor.Kind == DirectiveKind.SingleLine &&
+                    directive.DirectiveDescriptor.Directive.Equals(ComponentTypeParamDirective.Directive.Directive, StringComparison.Ordinal));
         }
 
         bool IsInSingleLineDirective()

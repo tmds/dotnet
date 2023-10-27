@@ -16,7 +16,7 @@ using Microsoft.Playwright;
 
 namespace Wasm.Build.Tests.Blazor;
 
-public class BuildPublishTests : BuildTestBase
+public class BuildPublishTests : BlazorWasmTestBase
 {
     public BuildPublishTests(ITestOutputHelper output, SharedBuildPerTestClassFixture buildContext)
         : base(output, buildContext)
@@ -34,11 +34,11 @@ public class BuildPublishTests : BuildTestBase
 
         // Build
         BlazorBuildInternal(id, config, publish: false);
-        AssertBlazorBootJson(config, isPublish: false, isNet7AndBelow: false);
+        _provider.AssertBlazorBootJson(config, isPublish: false);
 
         // Publish
         BlazorBuildInternal(id, config, publish: true);
-        AssertBlazorBootJson(config, isPublish: true, isNet7AndBelow: false);
+        _provider.AssertBlazorBootJson(config, isPublish: true);
     }
 
     [Theory]
@@ -111,7 +111,7 @@ public class BuildPublishTests : BuildTestBase
     [InlineData("Release", /*build*/true, /*publish*/false)]
     [InlineData("Release", /*build*/false, /*publish*/true)]
     [InlineData("Release", /*build*/true, /*publish*/true)]
-    [ActiveIssue("https://github.com/dotnet/runtime/issues/82725")]
+    [ActiveIssue("https://github.com/dotnet/runtime/issues/87877", TestPlatforms.Windows)]
     public async Task WithDllImportInMainAssembly(string config, bool build, bool publish)
     {
         // Based on https://github.com/dotnet/runtime/issues/59255
@@ -154,16 +154,10 @@ public class BuildPublishTests : BuildTestBase
         """);
 
         if (build)
-        {
             BlazorBuild(new BlazorBuildOptions(id, config, NativeFilesType.Relinked));
-            CheckNativeFileLinked(forPublish: false);
-        }
 
         if (publish)
-        {
             BlazorPublish(new BlazorBuildOptions(id, config, NativeFilesType.Relinked, ExpectRelinkDirWhenPublishing: build));
-            CheckNativeFileLinked(forPublish: true);
-        }
 
         if (publish)
             await BlazorRunForPublishWithWebServer(config, TestDllImport);
@@ -175,20 +169,6 @@ public class BuildPublishTests : BuildTestBase
             await page.Locator("text=\"cpp_add\"").ClickAsync();
             var txt = await page.Locator("p[role='test']").InnerHTMLAsync();
             Assert.Equal("Output: 22", txt);
-        }
-
-        void CheckNativeFileLinked(bool forPublish)
-        {
-            // very crude way to check that the native file was linked in
-            // needed because we don't run the blazor app yet
-            string objBuildDir = Path.Combine(_projectDir!, "obj", config, DefaultTargetFrameworkForBlazor, "wasm", forPublish ? "for-publish" : "for-build");
-            string pinvokeTableHPath = Path.Combine(objBuildDir, "pinvoke-table.h");
-            Assert.True(File.Exists(pinvokeTableHPath), $"Could not find {pinvokeTableHPath}");
-
-            string pinvokeTableHContents = File.ReadAllText(pinvokeTableHPath);
-            string pattern = $"\"cpp_add\".*{id}";
-            Assert.True(Regex.IsMatch(pinvokeTableHContents, pattern),
-                            $"Could not find {pattern} in {pinvokeTableHPath}");
         }
     }
 
@@ -216,7 +196,7 @@ public class BuildPublishTests : BuildTestBase
                 .ExecuteWithCapturedOutput("new razorclasslib")
                 .EnsureSuccessful();
 
-        string razorClassLibraryFileName = UseWebcil ? $"RazorClassLibrary{WebcilInWasmExtension}" : "RazorClassLibrary.dll";
+        string razorClassLibraryFileName = UseWebcil ? $"RazorClassLibrary{ProjectProviderBase.WebcilInWasmExtension}" : "RazorClassLibrary.dll";
         AddItemsPropertiesToProject(wasmProjectFile, extraItems: @$"
             <ProjectReference Include=""..\\RazorClassLibrary\\RazorClassLibrary.csproj"" />
             <BlazorWebAssemblyLazyLoad Include=""{razorClassLibraryFileName}"" />
@@ -257,7 +237,6 @@ public class BuildPublishTests : BuildTestBase
         await BlazorRunForBuildWithDotnetRun(config);
     }
 
-    [ActiveIssue("https://github.com/dotnet/runtime/issues/82481")]
     [ConditionalTheory(typeof(BuildTestBase), nameof(IsUsingWorkloads))]
     [InlineData("Debug", false)]
     [InlineData("Debug", true)]
@@ -270,8 +249,36 @@ public class BuildPublishTests : BuildTestBase
         if (aot)
             AddItemsPropertiesToProject(projectFile, "<RunAOTCompilation>true</RunAOTCompilation>");
 
-        BlazorPublish(new BlazorBuildOptions(id, config, aot ? NativeFilesType.AOT : NativeFilesType.Relinked));
+        BlazorPublish(new BlazorBuildOptions(
+            id,
+            config,
+            aot ? NativeFilesType.AOT
+                : (config == "Release" ? NativeFilesType.Relinked : NativeFilesType.FromRuntimePack)));
         await BlazorRunForPublishWithWebServer(config);
+    }
+
+    private void BlazorAddRazorButton(string buttonText, string customCode, string methodName = "test", string razorPage = "Pages/Counter.razor")
+    {
+        string additionalCode = $$"""
+            <p role="{{methodName}}">Output: @outputText</p>
+            <button class="btn btn-primary" @onclick="{{methodName}}">{{buttonText}}</button>
+
+            @code {
+                private string outputText = string.Empty;
+                public void {{methodName}}()
+                {
+                    {{customCode}}
+                }
+            }
+        """;
+
+        // find blazor's Counter.razor
+        string counterRazorPath = Path.Combine(_projectDir!, razorPage);
+        if (!File.Exists(counterRazorPath))
+            throw new FileNotFoundException($"Could not find {counterRazorPath}");
+
+        string oldContent = File.ReadAllText(counterRazorPath);
+        File.WriteAllText(counterRazorPath, oldContent + additionalCode);
     }
 
 }

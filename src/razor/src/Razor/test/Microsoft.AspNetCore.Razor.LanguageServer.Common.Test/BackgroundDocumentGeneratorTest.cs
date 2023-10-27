@@ -32,25 +32,25 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
             new HostDocument("c:/Test1/Components/Counter.cshtml", "Components/Counter.cshtml"),
         };
 
-        _hostProject1 = new HostProject("c:/Test1/Test1.csproj", RazorConfiguration.Default, "TestRootNamespace");
-        _hostProject2 = new HostProject("c:/Test2/Test2.csproj", RazorConfiguration.Default, "TestRootNamespace");
+        _hostProject1 = new HostProject("c:/Test1/Test1.csproj", "c:/Test1/obj", RazorConfiguration.Default, "TestRootNamespace");
+        _hostProject2 = new HostProject("c:/Test2/Test2.csproj", "c:/Test2/obj", RazorConfiguration.Default, "TestRootNamespace");
     }
 
     [Fact]
     public async Task Queue_ProcessesNotifications_AndGoesBackToSleep()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
+        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.DocumentAdded(_hostProject1, _documents[0], null);
-            projectManager.DocumentAdded(_hostProject1, _documents[1], null);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[1], null);
         }, DisposalToken);
 
         var project = await Dispatcher.RunOnDispatcherThreadAsync(
-            () => projectManager.GetLoadedProject(_hostProject1.FilePath), DisposalToken);
+            () => projectManager.GetLoadedProject(_hostProject1.Key), DisposalToken);
 
         var queue = new TestBackgroundDocumentGenerator(Dispatcher)
         {
@@ -82,17 +82,17 @@ public class BackgroundDocumentGeneratorTest : LanguageServerTestBase
     public async Task Queue_ProcessesNotifications_AndRestarts()
     {
         // Arrange
-        var projectManager = TestProjectSnapshotManager.Create(Dispatcher, ErrorReporter);
+        var projectManager = TestProjectSnapshotManager.Create(ErrorReporter);
         await Dispatcher.RunOnDispatcherThreadAsync(() =>
         {
             projectManager.ProjectAdded(_hostProject1);
             projectManager.ProjectAdded(_hostProject2);
-            projectManager.DocumentAdded(_hostProject1, _documents[0], null);
-            projectManager.DocumentAdded(_hostProject1, _documents[1], null);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[0], null);
+            projectManager.DocumentAdded(_hostProject1.Key, _documents[1], null);
         }, DisposalToken);
 
         var project = await Dispatcher.RunOnDispatcherThreadAsync(
-            () => projectManager.GetLoadedProject(_hostProject1.FilePath), DisposalToken);
+            () => projectManager.GetLoadedProject(_hostProject1.Key), DisposalToken);
 
         var queue = new TestBackgroundDocumentGenerator(Dispatcher)
         {

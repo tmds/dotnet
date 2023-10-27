@@ -82,8 +82,6 @@ namespace System.IO.Pipelines
 
     public abstract partial class PipeReader
     {
-        protected PipeReader() { }
-
         public abstract void AdvanceTo(SequencePosition consumed, SequencePosition examined);
         public abstract void AdvanceTo(SequencePosition consumed);
         public virtual Stream AsStream(bool leaveOpen = false) { throw null; }
@@ -113,8 +111,6 @@ namespace System.IO.Pipelines
 
     public abstract partial class PipeScheduler
     {
-        protected PipeScheduler() { }
-
         public static PipeScheduler Inline { get { throw null; } }
 
         public static PipeScheduler ThreadPool { get { throw null; } }
@@ -124,8 +120,6 @@ namespace System.IO.Pipelines
 
     public abstract partial class PipeWriter : Buffers.IBufferWriter<byte>
     {
-        protected PipeWriter() { }
-
         public virtual bool CanGetUnflushedBytes { get { throw null; } }
 
         public virtual long UnflushedBytes { get { throw null; } }

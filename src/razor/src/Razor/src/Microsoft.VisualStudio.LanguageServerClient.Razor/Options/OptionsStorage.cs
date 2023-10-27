@@ -26,6 +26,8 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     private const string Collection = "Razor";
     private const string FormatOnTypeName = "FormatOnType";
     private const string AutoClosingTagsName = "AutoClosingTags";
+    private const string AutoInsertAttributeQuotesName = "AutoInsertAttributeQuotes";
+    private const string ColorBackgroundName = "ColorBackground";
 
     public bool FormatOnType
     {
@@ -37,6 +39,18 @@ internal class OptionsStorage : IAdvancedSettingsStorage
     {
         get => GetBool(AutoClosingTagsName, defaultValue: true);
         set => SetBool(AutoClosingTagsName, value);
+    }
+
+    public bool AutoInsertAttributeQuotes
+    {
+        get => GetBool(AutoInsertAttributeQuotesName, defaultValue: true);
+        set => SetBool(AutoInsertAttributeQuotesName, value);
+    }
+
+    public bool ColorBackground
+    {
+        get => GetBool(ColorBackgroundName, defaultValue: false);
+        set => SetBool(ColorBackgroundName, value);
     }
 
     [ImportingConstructor]
@@ -51,7 +65,7 @@ internal class OptionsStorage : IAdvancedSettingsStorage
 
     public event EventHandler<ClientAdvancedSettingsChangedEventArgs>? Changed;
 
-    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags);
+    public ClientAdvancedSettings GetAdvancedSettings() => new(FormatOnType, AutoClosingTags, AutoInsertAttributeQuotes, ColorBackground);
 
     public bool GetBool(string name, bool defaultValue)
     {

@@ -99,6 +99,32 @@
         <target state="translated">Element hintName „{0}” dodanego pliku źródłowego musi być unikatowy w generatorze.</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="translated">Bieżący zestaw: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="translated">Drukowanie informacji „InternalsVisibleToAttribute” dla bieżącej kompilacji i wszystkich przywoływanych zestawów.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="translated">Odwołanie do zestawu: „{0}”
+  Przyznaje plik IVT bieżącemu zestawowi: {1}
+  Przyznaje pliki IVT dla:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="translated">    Nazwa zestawu: „{0}”
+    Klucze publiczne:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
         <target state="translated">Dodatkowy plik nie należy do źródłowego elementu „CompilationWithAnalyzers”.</target>
@@ -152,6 +178,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">Dana operacja ma element nadrzędny inny niż null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="translated">Nic</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">

@@ -408,8 +408,11 @@ internal static class CodeWriterExtensions
         string baseType,
         IList<string> interfaces,
         IList<TypeParameter> typeParameters,
+        CodeRenderingContext context,
         bool useNullableContext = false)
     {
+        Debug.Assert(context == null || context.CodeWriter == writer);
+
         if (useNullableContext)
         {
             writer.WriteLine("#nullable restore");
@@ -427,7 +430,30 @@ internal static class CodeWriterExtensions
         if (typeParameters != null && typeParameters.Count > 0)
         {
             writer.Write("<");
-            writer.Write(string.Join(", ", typeParameters.Select(tp => tp.ParameterName)));
+
+            for (var i = 0; i < typeParameters.Count; i++)
+            {
+                var typeParameter = typeParameters[i];
+                if (typeParameter.ParameterNameSource is { } source)
+                {
+                    using (writer.BuildLinePragma(source, context))
+                    {
+                        context.AddSourceMappingFor(source);
+                        writer.Write(typeParameter.ParameterName);
+                    }
+                }
+                else
+                {
+                    writer.Write(typeParameter.ParameterName);
+                }
+
+                // Write ',' between parameters, but not after them
+                if (i < typeParameters.Count - 1)
+                {
+                    writer.Write(",");
+                }
+            }
+
             writer.Write(">");
         }
 
@@ -457,13 +483,25 @@ internal static class CodeWriterExtensions
         writer.WriteLine();
         if (typeParameters != null)
         {
-            for (var i = 0; i < typeParameters.Count; i++)
+            foreach (var typeParameter in typeParameters)
             {
-                var constraint = typeParameters[i].Constraints;
+                var constraint = typeParameter.Constraints;
                 if (constraint != null)
                 {
-                    writer.Write(constraint);
-                    writer.WriteLine();
+                    if (typeParameter.ConstraintsSource is { } source)
+                    {
+                        Debug.Assert(context != null);
+                        using (writer.BuildLinePragma(source, context))
+                        {
+                            context.AddSourceMappingFor(source);
+                            writer.Write(constraint);
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(constraint);
+                        writer.WriteLine();
+                    }
                 }
             }
         }

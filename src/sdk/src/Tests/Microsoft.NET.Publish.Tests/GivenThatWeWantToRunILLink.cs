@@ -808,6 +808,10 @@ namespace Microsoft.NET.Publish.Tests
                     "ILLink : Trim analysis warning IL2026: Internal.Runtime.InteropServices.InMemoryAssemblyLoader.LoadInMemoryAssemblyInContextWhenSupported(IntPtr, IntPtr",
                     "ILLink : Trim analysis warning IL2026: System.Linq.Queryable: Using member 'System.Linq.EnumerableRewriter.s_seqMethods' which has 'RequiresUnreferencedCodeAttribute'",
                     "ILLink : Trim analysis warning IL2026: System.Transactions.DtcProxyShim.DtcProxyShimFactory.ConnectToProxyCore(String, Guid, Object, Boolean&, Byte[]&, ResourceManagerShim&",
+                    "ILLink : Trim analysis warning IL2026: System.Runtime.InteropServices: Using member 'System.Runtime.InteropServices.Marshalling.ComImportInteropInterfaceDetailsStrategy.s_attributeUsageAllowMultipleProperty' which has 'RequiresUnreferencedCodeAttribute'",
+                    "ILLink : Trim analysis warning IL2026: System.Runtime.InteropServices: Using member 'System.Runtime.InteropServices.Marshalling.ComImportInteropInterfaceDetailsStrategy.s_attributeUsageCtor' which has 'RequiresUnreferencedCodeAttribute'",
+                    "ILLink : Trim analysis warning IL2026: System.Runtime.InteropServices: Using member 'System.Runtime.InteropServices.Marshalling.ComImportInteropInterfaceDetailsStrategy.s_attributeBaseClassCtor' which has 'RequiresUnreferencedCodeAttribute'",
+                    "ILLink : Trim analysis warning IL2026: System.Runtime.InteropServices: Using member 'System.Runtime.InteropServices.Marshalling.ComImportInteropInterfaceDetailsStrategy.Instance' which has 'RequiresUnreferencedCodeAttribute'",
                     "ILLink : Trim analysis warning IL2045: System.Runtime.InteropServices.Marshal.GenerateProgIdForType(Type",
                     "ILLink : Trim analysis warning IL2045: System.Runtime.InteropServices.Marshal.GenerateProgIdForType(Type",
                     "ILLink : Trim analysis warning IL2045: System.Runtime.InteropServices.ComAwareEventInfo.GetDataForComInvocation(EventInfo, Guid&, Int32&",
@@ -970,6 +974,12 @@ namespace Microsoft.NET.Publish.Tests
                     .Should().BeFalse();
                 configProperties["System.Threading.Thread.EnableAutoreleasePool"].Value<bool>()
                     .Should().BeFalse();
+
+                if (parsedVersion.Major >= 8)
+                {
+                    configProperties["System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault"].Value<bool>()
+                        .Should().BeFalse();
+                }
             }
             else
             {
@@ -1698,8 +1708,12 @@ namespace Microsoft.NET.Publish.Tests
 
             // runtimeconfig has trim settings
             JObject runtimeConfig = JObject.Parse(File.ReadAllText(runtimeConfigPath));
-            JToken startupHookSupport = runtimeConfig["runtimeOptions"]["configProperties"]["System.StartupHookProvider.IsSupported"];
-            startupHookSupport.Value<bool>().Should().BeFalse();
+            JToken configProperties = runtimeConfig["runtimeOptions"]["configProperties"];
+
+            configProperties["System.StartupHookProvider.IsSupported"].Value<bool>().Should().BeFalse();
+
+            // Build with PublishTrimmed enabled should disable System.Text.Json reflection
+            configProperties["System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault"].Value<bool>().Should().BeFalse();
 
             // just setting PublishTrimmed doesn't inject the IsTrimmable attribute
             AssemblyInfo.Get(assemblyPath).ContainsKey("AssemblyMetadataAttribute").Should().BeFalse();

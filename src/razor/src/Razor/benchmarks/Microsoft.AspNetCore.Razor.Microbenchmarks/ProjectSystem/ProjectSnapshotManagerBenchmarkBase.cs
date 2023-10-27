@@ -23,7 +23,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
     internal TagHelperResolver TagHelperResolver { get; }
     protected string RepoRoot { get; }
 
-    protected ProjectSnapshotManagerBenchmarkBase()
+    protected ProjectSnapshotManagerBenchmarkBase(int documentCount = 100)
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
         while (current is not null && !File.Exists(Path.Combine(current.FullName, "Razor.sln")))
@@ -34,7 +34,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
         RepoRoot = current?.FullName ?? throw new InvalidOperationException("Could not find Razor.sln");
         var projectRoot = Path.Combine(RepoRoot, "src", "Razor", "test", "testapps", "LargeProject");
 
-        HostProject = new HostProject(Path.Combine(projectRoot, "LargeProject.csproj"), FallbackRazorConfiguration.MVC_2_1, rootNamespace: null);
+        HostProject = new HostProject(Path.Combine(projectRoot, "LargeProject.csproj"), Path.Combine(projectRoot, "obj"), FallbackRazorConfiguration.MVC_2_1, rootNamespace: null);
 
         using var _1 = ArrayBuilderPool<TextLoader>.GetPooledObject(out var textLoaders);
 
@@ -51,7 +51,7 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
 
         using var _2 = ArrayBuilderPool<HostDocument>.GetPooledObject(out var documents);
 
-        for (var i = 0; i < 100; i++)
+        for (var i = 0; i < documentCount; i++)
         {
             var filePath = Path.Combine(projectRoot, "Views", "Home", $"View00{i % 4}.cshtml");
             documents.Add(
@@ -75,7 +75,6 @@ public abstract partial class ProjectSnapshotManagerBenchmarkBase
             Array.Empty<ILanguageService>());
 
         return new DefaultProjectSnapshotManager(
-            new TestProjectSnapshotManagerDispatcher(),
             new TestErrorReporter(),
             Array.Empty<ProjectSnapshotChangeTrigger>(),
 #pragma warning disable CA2000 // Dispose objects before losing scope

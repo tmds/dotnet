@@ -83,4 +83,382 @@ public class InteractivityTest : ServerTestBase<BasicTestAppServerSiteFixture<Ra
         Browser.Equal("3", () => Browser.FindElement(By.Id("count-server-shared")).Text);
         Browser.Equal("5", () => Browser.FindElement(By.Id("count-wasm-shared")).Text);
     }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CanUseCallSiteRenderMode_Server(bool prerender)
+    {
+        Navigate(InteractiveCallsiteUrl(prerender, serverIncrement: 3));
+        Browser.Equal("Call-site interactive components", () => Browser.FindElement(By.TagName("h1")).Text);
+
+        if (prerender)
+        {
+            Browser.Equal("0", () => Browser.FindElement(By.Id("count-server")).Text);
+            Browser.Equal("False", () => Browser.FindElement(By.Id("is-interactive-server")).Text);
+        }
+        else
+        {
+            Browser.DoesNotExist(By.Id("count-server"));
+        }
+
+        Browser.Exists(By.Id("call-blazor-start")).Click();
+        Browser.Equal("True", () => Browser.FindElement(By.Id("is-interactive-server")).Text);
+
+        var countServerElem = Browser.FindElement(By.Id("count-server"));
+        Browser.Equal("0", () => countServerElem.Text);
+
+        Browser.Click(By.Id("increment-server"));
+        Browser.Equal("3", () => countServerElem.Text);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CanUseCallSiteRenderMode_WebAssembly(bool prerender)
+    {
+        Navigate(InteractiveCallsiteUrl(prerender, webAssemblyIncrement: 4));
+        Browser.Equal("Call-site interactive components", () => Browser.FindElement(By.TagName("h1")).Text);
+
+        if (prerender)
+        {
+            Browser.Equal("0", () => Browser.FindElement(By.Id("count-wasm")).Text);
+            Browser.Equal("False", () => Browser.FindElement(By.Id("is-interactive-wasm")).Text);
+        }
+        else
+        {
+            Browser.DoesNotExist(By.Id("count-wasm"));
+        }
+
+        Browser.Exists(By.Id("call-blazor-start")).Click();
+        Browser.Equal("True", () => Browser.FindElement(By.Id("is-interactive-wasm")).Text);
+
+        var countWasmElem = Browser.FindElement(By.Id("count-wasm"));
+        Browser.Equal("0", () => countWasmElem.Text);
+
+        Browser.Click(By.Id("increment-wasm"));
+        Browser.Equal("4", () => countWasmElem.Text);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CanUseCallSiteRenderMode_ServerAndWebAssembly(bool prerender)
+    {
+        Navigate(InteractiveCallsiteUrl(prerender, serverIncrement: 10, webAssemblyIncrement: 11));
+        Browser.Equal("Call-site interactive components", () => Browser.FindElement(By.TagName("h1")).Text);
+
+        if (prerender)
+        {
+            Browser.Equal("0", () => Browser.FindElement(By.Id("count-server")).Text);
+            Browser.Equal("False", () => Browser.FindElement(By.Id("is-interactive-server")).Text);
+            Browser.Equal("0", () => Browser.FindElement(By.Id("count-wasm")).Text);
+            Browser.Equal("False", () => Browser.FindElement(By.Id("is-interactive-wasm")).Text);
+        }
+        else
+        {
+            Browser.DoesNotExist(By.Id("count-server"));
+            Browser.DoesNotExist(By.Id("count-wasm"));
+        }
+
+        Browser.Exists(By.Id("call-blazor-start")).Click();
+        Browser.Equal("True", () => Browser.FindElement(By.Id("is-interactive-server")).Text);
+        Browser.Equal("True", () => Browser.FindElement(By.Id("is-interactive-wasm")).Text);
+
+        var countServerElem = Browser.FindElement(By.Id("count-server"));
+        var countWasmElem = Browser.FindElement(By.Id("count-wasm"));
+        Browser.Equal("0", () => countServerElem.Text);
+        Browser.Equal("0", () => countWasmElem.Text);
+
+        Browser.Click(By.Id("increment-server"));
+        Browser.Equal("10", () => countServerElem.Text);
+        Browser.Equal("0", () => countWasmElem.Text);
+
+        Browser.Click(By.Id("increment-wasm"));
+        Browser.Equal("11", () => countWasmElem.Text);
+        Browser.Equal("10", () => countServerElem.Text);
+    }
+
+    private const string AddServerId = "add-server-counter-link";
+    private const string AddServerPrerenderedId = "add-server-counter-prerendered-link";
+    private const string AddWebAssemblyId = "add-webassembly-counter-link";
+    private const string AddWebAssemblyPrerenderedId = "add-webassembly-counter-prerendered-link";
+
+    public static readonly TheoryData<string[]> AddCounterLinkSequences = new()
+    {
+        // One component
+        new[] { AddServerPrerenderedId },
+        new[] { AddWebAssemblyPrerenderedId },
+
+        // Multiple components, mixing all combinations of Server/WebAssembly and prerendered/non-prerendered
+        new[] { AddServerPrerenderedId, AddWebAssemblyId, AddWebAssemblyPrerenderedId, AddServerId },
+    };
+
+    [Theory]
+    [InlineData(AddServerId)]
+    [InlineData(AddServerPrerenderedId)]
+    [InlineData(AddWebAssemblyId)]
+    [InlineData(AddWebAssemblyPrerenderedId)]
+    public void DynamicallyAddedSsrComponent_CanBecomeInteractive_AfterEnhancedNavigation(string addCounterLinkId)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        Browser.Click(By.Id(addCounterLinkId));
+        Browser.Equal("True", () => Browser.FindElement(By.Id("is-interactive-0")).Text);
+
+        Browser.Click(By.Id("increment-0"));
+        Browser.Equal("1", () => Browser.FindElement(By.Id("count-0")).Text);
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    [Theory]
+    [MemberData(nameof(AddCounterLinkSequences))]
+    public void MultipleDynamicallyAddedSsrComponents_CanBecomeInteractive_AfterEnhancedNavigation(string[] addCounterLinkIds)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id(addCounterLinkIds[i]));
+            Browser.Equal("True", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+            
+            Browser.Click(By.Id($"increment-{i}"));
+            Browser.Equal("1", () => Browser.FindElement(By.Id($"count-{i}")).Text);
+        }
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    [Theory]
+    [MemberData(nameof(AddCounterLinkSequences))]
+    public void DynamicallyAddedSsrComponents_CanBecomeInteractive_AfterStreamingRenderingCompletes(string[] addCounterLinkIds)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+        Browser.Click(By.Id("start-streaming-link"));
+        Browser.Equal("Streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id(addCounterLinkIds[i]));
+
+            // To verify that components use the most up-to-date parameters when they become interactive, we
+            // perform SSR updates with new parameter values.
+            // The first counter will have an increment amount of 1, the second 2, etc.
+            for (var j = 0; j < i; j++)
+            {
+                Browser.Click(By.Id($"update-counter-link-{i}"));
+            }
+
+            if (addCounterLinkIds[i].Contains("prerendered"))
+            {
+                Browser.Equal("False", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+                Browser.Click(By.Id($"increment-{i}"));
+                Browser.Equal("0", () => Browser.FindElement(By.Id($"count-{i}")).Text);
+            }
+            else
+            {
+                // Non-prerendered components won't produce any output until they become interactive.
+                // We verify this by ensuring that the "action links" exist on the page,
+                // but the interactive component does not.
+                Browser.Exists(By.Id($"remove-counter-link-{i}"));
+                Browser.DoesNotExist(By.Id($"is-interactive-{i}"));
+            }
+        }
+
+        Browser.Click(By.Id("stop-streaming-link"));
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Equal("True", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+
+            Browser.Click(By.Id($"increment-{i}"));
+            Browser.Equal($"{i + 1}", () => Browser.FindElement(By.Id($"count-{i}")).Text);
+        }
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    [Theory]
+    [MemberData(nameof(AddCounterLinkSequences))]
+    public void InteractiveRootComponents_CanReceiveSsrParameterUpdates_FromEnhancedNavigation(string[] addCounterLinkIds)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id(addCounterLinkIds[i]));
+            Browser.Equal("True", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+
+            Browser.Click(By.Id($"increment-{i}"));
+            Browser.Equal("1", () => Browser.FindElement(By.Id($"count-{i}")).Text);
+
+            Browser.Click(By.Id($"update-counter-link-{i}"));
+            Browser.Equal("2", () => Browser.FindElement(By.Id($"increment-amount-{i}")).Text);
+
+            Browser.Click(By.Id($"increment-{i}"));
+            Browser.Equal("3", () => Browser.FindElement(By.Id($"count-{i}")).Text);
+        }
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    [Theory]
+    [MemberData(nameof(AddCounterLinkSequences))]
+    public void InteractiveRootComponents_CanReceiveSsrParameterUpdates_FromStreamingRenderingUpdate(string[] addCounterLinkIds)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        // Components don't become interactive during streaming rendering, so we need to
+        // add then via enhanced navigation first
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id(addCounterLinkIds[i]));
+            Browser.Equal("True", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+        }
+
+        Browser.Click(By.Id("start-streaming-link"));
+        Browser.Equal("Streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id($"increment-{i}"));
+            Browser.Equal("1", () => Browser.FindElement(By.Id($"count-{i}")).Text);
+
+            Browser.Click(By.Id($"update-counter-link-{i}"));
+            Browser.Equal("2", () => Browser.FindElement(By.Id($"increment-amount-{i}")).Text);
+
+            Browser.Click(By.Id($"increment-{i}"));
+            Browser.Equal("3", () => Browser.FindElement(By.Id($"count-{i}")).Text);
+        }
+
+        Browser.Click(By.Id("stop-streaming-link"));
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    [Theory]
+    [MemberData(nameof(AddCounterLinkSequences))]
+    public void InteractiveRootComponents_CanGetDisposed_FromEnhancedNavigation(string[] addCounterLinkIds)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id(addCounterLinkIds[i]));
+            Browser.Equal("True", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+        }
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id($"remove-counter-link-{i}"));
+            Browser.DoesNotExist(By.Id($"remove-counter-link-{i}"));
+            AssertBrowserLogContainsMessage($"Counter {i} was disposed");
+        }
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    [Theory]
+    [MemberData(nameof(AddCounterLinkSequences))]
+    public void InteractiveRootComponents_CanGetDisposed_FromStreamingRenderingUpdate(string[] addCounterLinkIds)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        // Components don't become interactive during streaming rendering, so we need to
+        // add then via enhanced navigation first
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id(addCounterLinkIds[i]));
+            Browser.Equal("True", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+        }
+
+        Browser.Click(By.Id("start-streaming-link"));
+        Browser.Equal("Streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id($"remove-counter-link-{i}"));
+            Browser.DoesNotExist(By.Id($"remove-counter-link-{i}"));
+            AssertBrowserLogContainsMessage($"Counter {i} was disposed");
+        }
+
+        Browser.Click(By.Id("stop-streaming-link"));
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    [Theory]
+    [MemberData(nameof(AddCounterLinkSequences))]
+    public void DynamicallyAddedSsrComponents_CanGetRemoved_BeforeStreamingRenderingCompletes(string[] addCounterLinkIds)
+    {
+        Navigate($"{ServerPathBase}/streaming-interactivity");
+
+        Browser.Equal("Not streaming", () => Browser.FindElement(By.Id("status")).Text);
+        Browser.Click(By.Id("start-streaming-link"));
+        Browser.Equal("Streaming", () => Browser.FindElement(By.Id("status")).Text);
+
+        for (var i = 0; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Click(By.Id(addCounterLinkIds[i]));
+            Browser.Exists(By.Id($"remove-counter-link-{i}"));
+        }
+
+        Browser.Click(By.Id($"remove-counter-link-0"));
+
+        Browser.Click(By.Id("stop-streaming-link"));
+
+        for (var i = 1; i < addCounterLinkIds.Length; i++)
+        {
+            Browser.Equal("True", () => Browser.FindElement(By.Id($"is-interactive-{i}")).Text);
+        }
+
+        AssertBrowserLogDoesNotContainErrors();
+    }
+
+    private string InteractiveCallsiteUrl(bool prerender, int? serverIncrement = default, int? webAssemblyIncrement = default)
+    {
+        var result = $"{ServerPathBase}/interactive-callsite?suppress-autostart&prerender={prerender}";
+
+        if (serverIncrement.HasValue)
+        {
+            result += $"&server={serverIncrement}";
+        }
+
+        if (webAssemblyIncrement.HasValue)
+        {
+            result += $"&wasm={webAssemblyIncrement}";
+        }
+
+        return result;
+    }
+
+    private void AssertBrowserLogContainsMessage(string message)
+    {
+        Browser.True(() =>
+        {
+            var entries = Browser.Manage().Logs.GetLog(LogType.Browser);
+            return entries.Any(entry => entry.Message.Contains(message));
+        });
+    }
+
+    private void AssertBrowserLogDoesNotContainErrors()
+    {
+        var entries = Browser.Manage().Logs.GetLog(LogType.Browser);
+        Assert.DoesNotContain(entries, entry => entry.Level == LogLevel.Severe);
+    }
 }

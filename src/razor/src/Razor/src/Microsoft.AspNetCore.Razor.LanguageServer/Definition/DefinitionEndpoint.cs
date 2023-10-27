@@ -28,7 +28,7 @@ using SyntaxKind = Microsoft.AspNetCore.Razor.Language.SyntaxKind;
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Definition;
 
 [LanguageServerEndpoint(Methods.TextDocumentDefinitionName)]
-internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>, IRegistrationExtension
+internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextDocumentPositionParams, DefinitionResult?>, ICapabilitiesProvider
 {
     private readonly RazorComponentSearchEngine _componentSearchEngine;
     private readonly IRazorDocumentMappingService _documentMappingService;
@@ -51,12 +51,9 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
 
     protected override string CustomMessageTarget => RazorLanguageServerCustomMessageTargets.RazorDefinitionEndpointName;
 
-    public RegistrationExtensionResult GetRegistration(VSInternalClientCapabilities clientCapabilities)
+    public void ApplyCapabilities(VSInternalServerCapabilities serverCapabilities, VSInternalClientCapabilities clientCapabilities)
     {
-        const string ServerCapability = "definitionProvider";
-        var option = new SumType<bool, DefinitionOptions>(new DefinitionOptions());
-
-        return new RegistrationExtensionResult(ServerCapability, option);
+        serverCapabilities.DefinitionProvider = new DefinitionOptions();
     }
 
     protected async override Task<DefinitionResult?> TryHandleAsync(TextDocumentPositionParams request, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)
@@ -114,7 +111,8 @@ internal sealed class DefinitionEndpoint : AbstractRazorDelegatingEndpoint<TextD
         return Task.FromResult<IDelegatedParams?>(new DelegatedPositionParams(
                 documentContext.Identifier,
                 positionInfo.Position,
-                positionInfo.LanguageKind));
+                positionInfo.LanguageKind,
+                request.TextDocument.GetProjectContext()));
     }
 
     protected async override Task<DefinitionResult?> HandleDelegatedResponseAsync(DefinitionResult? response, TextDocumentPositionParams originalRequest, RazorRequestContext requestContext, DocumentPositionInfo positionInfo, CancellationToken cancellationToken)

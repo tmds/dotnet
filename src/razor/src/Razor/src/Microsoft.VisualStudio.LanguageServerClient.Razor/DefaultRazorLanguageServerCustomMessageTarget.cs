@@ -203,7 +203,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var formattingParams = new DocumentFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { Uri = projectedUri },
+            TextDocument = request.TextDocument.WithUri(projectedUri),
             Options = request.Options
         };
 
@@ -239,7 +239,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             Character = request.Character,
             Position = request.Position,
-            TextDocument = new TextDocumentIdentifier() { Uri = htmlDocument.Uri },
+            TextDocument = request.TextDocument.WithUri(htmlDocument.Uri),
             Options = request.Options
         };
 
@@ -265,12 +265,14 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         bool synchronized;
         VirtualDocumentSnapshot virtualDocumentSnapshot;
+        string languageServerName;
         if (codeActionParams.LanguageKind == RazorLanguageKind.Html)
         {
             (synchronized, virtualDocumentSnapshot) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<HtmlVirtualDocumentSnapshot>(
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument.Uri,
                 cancellationToken);
+            languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
         }
         else if (codeActionParams.LanguageKind == RazorLanguageKind.CSharp)
         {
@@ -278,6 +280,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
                 codeActionParams.HostDocumentVersion,
                 codeActionParams.CodeActionParams.TextDocument.Uri,
                 cancellationToken);
+            languageServerName = RazorLSPConstants.HtmlLanguageServerName;
         }
         else
         {
@@ -294,9 +297,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         codeActionParams.CodeActionParams.TextDocument.Uri = virtualDocumentSnapshot.Uri;
 
         var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+        var lspMethodName = Methods.TextDocumentCodeActionName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, codeActionParams.CorrelationId);
         var requests = _requestInvoker.ReinvokeRequestOnMultipleServersAsync<VSCodeActionParams, IReadOnlyList<VSInternalCodeAction>>(
             textBuffer,
-            Methods.TextDocumentCodeActionName,
+            lspMethodName,
             SupportsCodeActionResolve,
             codeActionParams.CodeActionParams,
             cancellationToken).ConfigureAwait(false);
@@ -414,10 +419,13 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         };
 
         var textBuffer = csharpDoc.Snapshot.TextBuffer;
+        var languageServerName = RazorLSPConstants.RazorCSharpLanguageServerName;
+        var lspMethodName = Methods.TextDocumentSemanticTokensRangeName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, semanticTokensParams.CorrelationId);
         var csharpResults = await _requestInvoker.ReinvokeRequestOnServerAsync<SemanticTokensRangeParams, VSSemanticTokensResponse>(
             textBuffer,
-            Methods.TextDocumentSemanticTokensRangeName,
-            RazorLSPConstants.RazorCSharpLanguageServerName,
+            lspMethodName,
+            languageServerName,
             newParams,
             cancellationToken).ConfigureAwait(false);
 
@@ -618,7 +626,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             Context = inlineCompletionParams.Context,
             Position = inlineCompletionParams.Position,
-            TextDocument = new TextDocumentIdentifier { Uri = csharpDoc.Uri, },
+            TextDocument = inlineCompletionParams.TextDocument.WithUri(csharpDoc.Uri),
             Options = inlineCompletionParams.Options,
         };
 
@@ -650,10 +658,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
             {
                 var csharpRequestParams = new FoldingRangeParams()
                 {
-                    TextDocument = new()
-                    {
-                        Uri = csharpSnapshot.Uri
-                    }
+                    TextDocument = foldingRangeParams.TextDocument.WithUri(csharpSnapshot.Uri),
                 };
 
                 var request = await _requestInvoker.ReinvokeRequestOnServerAsync<FoldingRangeParams, IEnumerable<FoldingRange>?>(
@@ -847,10 +852,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         {
             Context = request.Context,
             Position = request.ProjectedPosition,
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = projectedUri,
-            },
+            TextDocument = request.HostDocument.WithUri(projectedUri),
         };
 
         var continueOnCapturedContext = false;
@@ -870,9 +872,11 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         try
         {
             var textBuffer = virtualDocumentSnapshot.Snapshot.TextBuffer;
+            var lspMethodName = Methods.TextDocumentCompletion.Name;
+            using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, languageServerName, request.CorrelationId);
             var response = await _requestInvoker.ReinvokeRequestOnServerAsync<CompletionParams, JToken?>(
                 textBuffer,
-                Methods.TextDocumentCompletion.Name,
+                lspMethodName,
                 languageServerName,
                 completionParams,
                 cancellationToken).ConfigureAwait(continueOnCapturedContext);
@@ -1027,9 +1031,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var renameParams = new RenameParams()
         {
-            TextDocument = new TextDocumentIdentifier()
+            TextDocument = new VSTextDocumentIdentifier()
             {
                 Uri = delegationDetails.Value.ProjectedUri,
+                ProjectContext = request.ProjectContext
             },
             Position = request.ProjectedPosition,
             NewName = request.NewName,
@@ -1055,10 +1060,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var onAutoInsertParams = new VSInternalDocumentOnAutoInsertParams
         {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = delegationDetails.Value.ProjectedUri,
-            },
+            TextDocument = request.HostDocument.WithUri(delegationDetails.Value.ProjectedUri),
             Position = request.ProjectedPosition,
             Character = request.Character,
             Options = request.Options
@@ -1083,10 +1085,7 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var validateBreakpointRangeParams = new VSInternalValidateBreakableRangeParams
         {
-            TextDocument = new TextDocumentIdentifier()
-            {
-                Uri = delegationDetails.Value.ProjectedUri,
-            },
+            TextDocument = request.HostDocument.WithUri(delegationDetails.Value.ProjectedUri),
             Range = request.ProjectedRange
         };
 
@@ -1100,22 +1099,22 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
     }
 
     public override Task<VSInternalHover?> HoverAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
+        => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalHover>(request, Methods.TextDocumentHoverName, cancellationToken);
 
     public override Task<Location[]?> DefinitionAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
+        => DelegateTextDocumentPositionAndProjectContextAsync<Location[]>(request, Methods.TextDocumentDefinitionName, cancellationToken);
 
     public override Task<DocumentHighlight[]?> DocumentHighlightAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
+        => DelegateTextDocumentPositionAndProjectContextAsync<DocumentHighlight[]>(request, Methods.TextDocumentDocumentHighlightName, cancellationToken);
 
     public override Task<SignatureHelp?> SignatureHelpAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
+        => DelegateTextDocumentPositionAndProjectContextAsync<SignatureHelp>(request, Methods.TextDocumentSignatureHelpName, cancellationToken);
 
     public override Task<ImplementationResult> ImplementationAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
+        => DelegateTextDocumentPositionAndProjectContextAsync<ImplementationResult>(request, Methods.TextDocumentImplementationName, cancellationToken);
 
     public override Task<VSInternalReferenceItem[]?> ReferencesAsync(DelegatedPositionParams request, CancellationToken cancellationToken)
-        => DelegateTextDocumentPositionRequestAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
+        => DelegateTextDocumentPositionAndProjectContextAsync<VSInternalReferenceItem[]>(request, Methods.TextDocumentReferencesName, cancellationToken);
 
     public override async Task<RazorPullDiagnosticResponse?> DiagnosticsAsync(DelegatedDiagnosticParams request, CancellationToken cancellationToken)
     {
@@ -1128,7 +1127,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         }
         catch (Exception e)
         {
-            _outputWindowLogger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
+            if (e is not OperationCanceledException)
+            {
+                _outputWindowLogger?.LogError(e, "Exception thrown in PullDiagnostic delegation");
+            }
             // Return null if any of the tasks getting diagnostics results in an error
             return null;
         }
@@ -1159,16 +1161,14 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var request = new VSInternalDocumentDiagnosticsParams
         {
-            TextDocument = new TextDocumentIdentifier
-            {
-                Uri = virtualDocument.Uri,
-            },
+            TextDocument = hostDocument.WithUri(virtualDocument.Uri),
         };
 
-        using var _ = _telemetryReporter.TrackLspRequest(nameof(_requestInvoker.ReinvokeRequestOnServerAsync), VSInternalMethods.DocumentPullDiagnosticName, delegatedLanguageServerName, correlationId);
+        var lspMethodName = VSInternalMethods.DocumentPullDiagnosticName;
+        using var _ = _telemetryReporter.TrackLspRequest(lspMethodName, delegatedLanguageServerName, correlationId);
         var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]?>(
             virtualDocument.Snapshot.TextBuffer,
-            VSInternalMethods.DocumentPullDiagnosticName,
+            lspMethodName,
             delegatedLanguageServerName,
             request,
             cancellationToken).ConfigureAwait(false);
@@ -1187,7 +1187,104 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
         return response.Response;
     }
 
-    private async Task<TResult?> DelegateTextDocumentPositionRequestAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
+    public override async Task<VSInternalSpellCheckableRangeReport[]> SpellCheckAsync(DelegatedSpellCheckParams request, CancellationToken cancellationToken)
+    {
+        var hostDocument = request.HostDocument;
+        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            hostDocument.Version,
+            hostDocument.Uri,
+            cancellationToken).ConfigureAwait(false);
+        if (!synchronized)
+        {
+            return Array.Empty<VSInternalSpellCheckableRangeReport>();
+        }
+
+        var spellCheckParams = new VSInternalDocumentSpellCheckableParams
+        {
+            TextDocument = request.HostDocument.WithUri(virtualDocument.Uri),
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport[]>(
+            virtualDocument.Snapshot.TextBuffer,
+            VSInternalMethods.TextDocumentSpellCheckableRangesName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            SupportsSpellCheck,
+            spellCheckParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return response?.Response ?? Array.Empty<VSInternalSpellCheckableRangeReport>();
+    }
+
+    private static bool SupportsSpellCheck(JToken token)
+    {
+        var serverCapabilities = token.ToObject<VSInternalServerCapabilities>();
+
+        return serverCapabilities?.SpellCheckingProvider ?? false;
+    }
+
+    public override async Task<VSProjectContextList?> ProjectContextsAsync(DelegatedProjectContextsParams request, CancellationToken cancellationToken)
+    {
+        var hostDocument = request.HostDocument;
+        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            hostDocument.Version,
+            hostDocument.Uri,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!synchronized)
+        {
+            return null;
+        }
+
+        var projectContextParams = new VSGetProjectContextsParams()
+        {
+            TextDocument = new TextDocumentItem()
+            {
+                LanguageId = CodeAnalysis.LanguageNames.CSharp,
+                Uri = virtualDocument.Uri,
+                Version = virtualDocument.Snapshot.Version.VersionNumber,
+                Text = virtualDocument.Snapshot.GetText(),
+            }
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<VSGetProjectContextsParams, VSProjectContextList?>(
+            virtualDocument.Snapshot.TextBuffer,
+            VSMethods.GetProjectContextsName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            projectContextParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return response?.Response;
+    }
+
+    public override async Task<SumType<DocumentSymbol[], SymbolInformation[]>?> DocumentSymbolsAsync(DelegatedDocumentSymbolParams request, CancellationToken cancellationToken)
+    {
+        var hostDocument = request.TextDocument;
+        var (synchronized, virtualDocument) = await _documentSynchronizer.TrySynchronizeVirtualDocumentAsync<CSharpVirtualDocumentSnapshot>(
+            request.Version,
+            hostDocument.Uri,
+            cancellationToken).ConfigureAwait(false);
+
+        if (!synchronized)
+        {
+            return null;
+        }
+
+        var documentSymbolParams = new DocumentSymbolParams()
+        {
+            TextDocument = request.TextDocument.WithUri(virtualDocument.Uri)
+        };
+
+        var response = await _requestInvoker.ReinvokeRequestOnServerAsync<DocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>?>(
+            virtualDocument.Snapshot.TextBuffer,
+            Methods.TextDocumentDocumentSymbolName,
+            RazorLSPConstants.RazorCSharpLanguageServerName,
+            documentSymbolParams,
+            cancellationToken).ConfigureAwait(false);
+
+        return response?.Response;
+    }
+
+    private async Task<TResult?> DelegateTextDocumentPositionAndProjectContextAsync<TResult>(DelegatedPositionParams request, string methodName, CancellationToken cancellationToken)
     {
         var delegationDetails = await GetProjectedRequestDetailsAsync(request, cancellationToken).ConfigureAwait(false);
         if (delegationDetails is null)
@@ -1197,9 +1294,10 @@ internal class DefaultRazorLanguageServerCustomMessageTarget : RazorLanguageServ
 
         var positionParams = new TextDocumentPositionParams()
         {
-            TextDocument = new TextDocumentIdentifier()
+            TextDocument = new VSTextDocumentIdentifier()
             {
                 Uri = delegationDetails.Value.ProjectedUri,
+                ProjectContext = null,
             },
             Position = request.ProjectedPosition,
         };

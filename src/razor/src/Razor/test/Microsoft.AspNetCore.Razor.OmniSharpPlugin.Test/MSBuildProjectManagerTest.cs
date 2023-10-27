@@ -50,7 +50,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager();
         msbuildProjectManager.Initialize(projectManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
+        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", "/path/to/obj", _customConfiguration, "TestRootNamespace");
         var configuredHostDocuments = new[]
         {
             new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Component),
@@ -60,7 +60,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
             projectManager.ProjectAdded(hostProject);
             var hostDocument = new OmniSharpHostDocument("file.cshtml", "file.cshtml", FileKinds.Legacy);
             projectManager.DocumentAdded(hostProject, hostDocument);
-            return projectManager.GetLoadedProject(hostProject);
+            return projectManager.GetLoadedProject(hostProject.Key);
         });
 
         // Act
@@ -73,7 +73,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         // Assert
         await RunOnDispatcherThreadAsync(() =>
         {
-            var refreshedProject = projectManager.GetLoadedProject(hostProject);
+            var refreshedProject = projectManager.GetLoadedProject(hostProject.Key);
             var documentFilePath = Assert.Single(refreshedProject.DocumentFilePaths);
             var document = refreshedProject.GetDocument(documentFilePath);
             Assert.Equal("file.cshtml", document.FilePath);
@@ -93,13 +93,13 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager();
         msbuildProjectManager.Initialize(projectManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
+        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", "/path/to/obj", _customConfiguration, "TestRootNamespace");
         var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
         {
             projectManager.ProjectAdded(hostProject);
             var hostDocument = new OmniSharpHostDocument("file.razor", "file.razor", FileKinds.Component);
             projectManager.DocumentAdded(hostProject, hostDocument);
-            return projectManager.GetLoadedProject(hostProject);
+            return projectManager.GetLoadedProject(hostProject.Key);
         });
 
         // Act
@@ -112,7 +112,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         // Assert
         await RunOnDispatcherThreadAsync(() =>
         {
-            var refreshedProject = projectManager.GetLoadedProject(hostProject);
+            var refreshedProject = projectManager.GetLoadedProject(hostProject.Key);
             Assert.Empty(refreshedProject.DocumentFilePaths);
         });
     }
@@ -131,12 +131,12 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager(allowNotifyListeners: true);
         msbuildProjectManager.Initialize(projectManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
+        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", "/path/to/obj", _customConfiguration, "TestRootNamespace");
         var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
         {
             projectManager.ProjectAdded(hostProject);
             projectManager.DocumentAdded(hostProject, hostDocument);
-            return projectManager.GetLoadedProject(hostProject);
+            return projectManager.GetLoadedProject(hostProject.Key);
         });
         projectManager.Changed += (sender, args) => throw new XunitException("Should not have been notified");
 
@@ -163,11 +163,11 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
             LoggerFactory);
         var projectManager = CreateProjectSnapshotManager();
         msbuildProjectManager.Initialize(projectManager);
-        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", _customConfiguration, "TestRootNamespace");
+        var hostProject = new OmniSharpHostProject("/path/to/project.csproj", "/path/to/obj", _customConfiguration, "TestRootNamespace");
         var projectSnapshot = await RunOnDispatcherThreadAsync(() =>
         {
             projectManager.ProjectAdded(hostProject);
-            return projectManager.GetLoadedProject(hostProject);
+            return projectManager.GetLoadedProject(hostProject.Key);
         });
 
         // Act
@@ -180,7 +180,7 @@ public class MSBuildProjectManagerTest : OmniSharpTestBase
         // Assert
         await RunOnDispatcherThreadAsync(() =>
         {
-            var refreshedProject = projectManager.GetLoadedProject(hostProject);
+            var refreshedProject = projectManager.GetLoadedProject(hostProject.Key);
             var document = refreshedProject.GetDocument("file.razor");
             Assert.Equal(FileKinds.Component, document.FileKind);
         });

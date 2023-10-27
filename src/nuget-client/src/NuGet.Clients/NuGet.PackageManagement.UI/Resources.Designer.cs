@@ -88,15 +88,6 @@ namespace NuGet.PackageManagement.UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package changes.
-        /// </summary>
-        public static string Accessibility_PackageChanges {
-            get {
-                return ResourceManager.GetString("Accessibility_PackageChanges", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Package deprecation.
         /// </summary>
         public static string Accessibility_PackageDeprecation {
@@ -327,6 +318,15 @@ namespace NuGet.PackageManagement.UI {
         public static string BrowseFolderDialogSelectButton {
             get {
                 return ResourceManager.GetString("BrowseFolderDialogSelectButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Apply.
+        /// </summary>
+        public static string Button_Apply {
+            get {
+                return ResourceManager.GetString("Button_Apply", resourceCulture);
             }
         }
         
@@ -727,7 +727,7 @@ namespace NuGet.PackageManagement.UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Do not show this again.
+        ///   Looks up a localized string similar to _Don&apos;t show this again.
         /// </summary>
         public static string DoNotShowThisAgain {
             get {
@@ -1092,6 +1092,15 @@ namespace NuGet.PackageManagement.UI {
         public static string Label_License {
             get {
                 return ResourceManager.GetString("Label_License", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An error occurred while fetching additional information about the package. Refresh to try again..
+        /// </summary>
+        public static string Label_NetworkError {
+            get {
+                return ResourceManager.GetString("Label_NetworkError", resourceCulture);
             }
         }
         
@@ -1773,7 +1782,7 @@ namespace NuGet.PackageManagement.UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Visual Studio is about to make changes to this solution. Click OK to proceed with the changes listed below..
+        ///   Looks up a localized string similar to Visual Studio is about to make changes to this solution:.
         /// </summary>
         public static string Text_Changes {
             get {

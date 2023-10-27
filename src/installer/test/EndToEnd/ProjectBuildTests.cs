@@ -203,7 +203,6 @@ namespace EndToEnd.Tests
             string expectedOutput =
 @"[\-\s]+
 [\w \.]+webapp,razor\s+\[C#\][\w\ \/]+
-[\w \.]+blazorserver\s+\[C#\][\w\ \/]+
 [\w \.]+classlib\s+\[C#\],F#,VB[\w\ \/]+
 [\w \.]+console\s+\[C#\],F#,VB[\w\ \/]+
 ";
@@ -347,7 +346,6 @@ namespace EndToEnd.Tests
         [InlineData("xunit", "C#")]
         [InlineData("xunit", "VB")]
         [InlineData("xunit", "F#")]
-        [InlineData("blazorserver")]
         [InlineData("blazorwasm")]
         [InlineData("web")]
         [InlineData("web", "C#")]
@@ -364,20 +362,6 @@ namespace EndToEnd.Tests
         {
             string framework = DetectExpectedDefaultFramework(templateName);
             TestTemplateCreateAndBuild(templateName, selfContained: false, language: language, framework: framework);
-        }
-
-        /// <summary>
-        /// The test checks if the template creates the template for correct framework by default.
-        /// For .NET 6 the templates should create the projects targeting net6.0.
-        /// These templates require node.js to be built, so we just check if TargetFramework is present in csproj files
-        /// </summary>
-        [Theory]
-        [InlineData("angular")]
-        [InlineData("react")]
-        public void ItCanCreateTemplateWithDefaultFramework(string templateName)
-        {
-            string framework = DetectExpectedDefaultFramework(templateName);
-            TestTemplateCreateAndBuild(templateName, build: false, framework: framework, deleteTestDirectory: true);
         }
 
         /// <summary>

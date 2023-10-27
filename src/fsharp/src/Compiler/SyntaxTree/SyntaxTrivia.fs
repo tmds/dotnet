@@ -76,6 +76,13 @@ type SynExprLambdaTrivia =
     static member Zero: SynExprLambdaTrivia = { ArrowRange = None }
 
 [<NoEquality; NoComparison>]
+type SynExprDotLambdaTrivia =
+    {
+        UnderscoreRange: range
+        DotRange: range
+    }
+
+[<NoEquality; NoComparison>]
 type SynExprLetOrUseTrivia = { InKeyword: range option }
 
 [<NoEquality; NoComparison>]
@@ -134,6 +141,13 @@ type SynTypeDefnLeadingKeyword =
     | And of range
     | StaticType of staticRange: range * typeRange: range
     | Synthetic
+
+    member this.Range =
+        match this with
+        | SynTypeDefnLeadingKeyword.Type range
+        | SynTypeDefnLeadingKeyword.And range -> range
+        | SynTypeDefnLeadingKeyword.StaticType (staticRange, typeRange) -> Range.unionRanges staticRange typeRange
+        | SynTypeDefnLeadingKeyword.Synthetic -> failwith "Getting range from synthetic keyword"
 
 [<NoEquality; NoComparison>]
 type SynTypeDefnTrivia =
@@ -381,3 +395,10 @@ type SynMemberSigMemberTrivia =
     }
 
     static member Zero: SynMemberSigMemberTrivia = { GetSetKeywords = None }
+
+[<NoEquality; NoComparison>]
+type SynMeasureConstantTrivia =
+    {
+        LessRange: range
+        GreaterRange: range
+    }

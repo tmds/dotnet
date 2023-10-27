@@ -90,7 +90,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
     {
         // Arrange
         var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
-        var projectSnapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
+        var projectSnapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         projectSnapshotManager.AllowNotifyListeners = true;
         documentVersionCache.Initialize(projectSnapshotManager);
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -99,7 +99,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         var textAndVersion = TextAndVersion.Create(text, textVersion);
         documentVersionCache.TrackDocumentVersion(document, 1337);
         projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
-        projectSnapshotManager.DocumentAdded(document.ProjectInternal.HostProject, document.State.HostDocument, TextLoader.From(textAndVersion));
+        projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
 
         // Act - 1
         var result = documentVersionCache.TryGetDocumentVersion(document, out _);
@@ -108,7 +108,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         Assert.True(result);
 
         // Act - 2
-        projectSnapshotManager.DocumentRemoved(document.ProjectInternal.HostProject, document.State.HostDocument);
+        projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument);
         result = documentVersionCache.TryGetDocumentVersion(document, out _);
 
         // Assert - 2
@@ -120,7 +120,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
     {
         // Arrange
         var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
-        var projectSnapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
+        var projectSnapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         projectSnapshotManager.AllowNotifyListeners = true;
         documentVersionCache.Initialize(projectSnapshotManager);
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -129,8 +129,8 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         var textAndVersion = TextAndVersion.Create(text, textVersion);
         documentVersionCache.TrackDocumentVersion(document, 1337);
         projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
-        projectSnapshotManager.DocumentAdded(document.ProjectInternal.HostProject, document.State.HostDocument, TextLoader.From(textAndVersion));
-        projectSnapshotManager.DocumentOpened(document.ProjectInternal.FilePath, document.FilePath, textAndVersion.Text);
+        projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, TextLoader.From(textAndVersion));
+        projectSnapshotManager.DocumentOpened(document.ProjectInternal.Key, document.FilePath, textAndVersion.Text);
 
         // Act - 1
         var result = documentVersionCache.TryGetDocumentVersion(document, out _);
@@ -140,7 +140,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         Assert.True(projectSnapshotManager.IsDocumentOpen(document.FilePath));
 
         // Act - 2
-        projectSnapshotManager.DocumentRemoved(document.ProjectInternal.HostProject, document.State.HostDocument);
+        projectSnapshotManager.DocumentRemoved(document.ProjectInternal.Key, document.State.HostDocument);
         result = documentVersionCache.TryGetDocumentVersion(document, out _);
 
         // Assert - 2
@@ -152,7 +152,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
     {
         // Arrange
         var documentVersionCache = new DefaultDocumentVersionCache(LegacyDispatcher);
-        var projectSnapshotManager = TestProjectSnapshotManager.Create(LegacyDispatcher, ErrorReporter);
+        var projectSnapshotManager = TestProjectSnapshotManager.Create(ErrorReporter);
         projectSnapshotManager.AllowNotifyListeners = true;
         documentVersionCache.Initialize(projectSnapshotManager);
         var document = TestDocumentSnapshot.Create("C:/file.cshtml");
@@ -162,7 +162,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         documentVersionCache.TrackDocumentVersion(document, 1337);
         projectSnapshotManager.ProjectAdded(document.ProjectInternal.HostProject);
         var textLoader = TextLoader.From(textAndVersion);
-        projectSnapshotManager.DocumentAdded(document.ProjectInternal.HostProject, document.State.HostDocument, textLoader);
+        projectSnapshotManager.DocumentAdded(document.ProjectInternal.Key, document.State.HostDocument, textLoader);
 
         // Act - 1
         var result = documentVersionCache.TryGetDocumentVersion(document, out _);
@@ -171,7 +171,7 @@ public class DefaultDocumentVersionCacheTest : LanguageServerTestBase
         Assert.True(result);
 
         // Act - 2
-        projectSnapshotManager.DocumentClosed(document.ProjectInternal.HostProject.FilePath, document.State.HostDocument.FilePath, textLoader);
+        projectSnapshotManager.DocumentClosed(document.ProjectInternal.HostProject.Key, document.State.HostDocument.FilePath, textLoader);
         result = documentVersionCache.TryGetDocumentVersion(document, out var version);
 
         // Assert - 2

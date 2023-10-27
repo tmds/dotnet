@@ -99,6 +99,32 @@
         <target state="translated">{0} hintName přidaného zdrojového souboru musí být v rámci generátoru jedinečná.</target>
         <note>{0}: the provided hintname</note>
       </trans-unit>
+      <trans-unit id="InternalsVisibleToCurrentAssembly">
+        <source>Current assembly: '{0}'</source>
+        <target state="translated">Aktuální sestavení: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToHeaderSummary">
+        <source>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</source>
+        <target state="translated">Tisk informací InternalsVisibleToAttribute pro aktuální kompilaci a všechna odkazovaná sestavení.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssembly">
+        <source>Assembly reference: '{0}'
+  Grants IVT to current assembly: {1}
+  Grants IVTs to:</source>
+        <target state="translated">Odkaz na sestavení: {0}
+  Uděluje IVT aktuálnímu sestavení: {1}
+  Uděluje IVT:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="InternalsVisibleToReferencedAssemblyDetails">
+        <source>    Assembly name: '{0}'
+    Public Keys:</source>
+        <target state="translated">    Název sestavení: {0}
+    Veřejné klíče:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidAdditionalFile">
         <source>Additional file doesn't belong to the underlying 'CompilationWithAnalyzers'.</source>
         <target state="translated">Další soubor nepatří do základního CompilationWithAnalyzers.</target>
@@ -152,6 +178,11 @@
       <trans-unit id="NotARootOperation">
         <source>Given operation has a non-null parent.</source>
         <target state="translated">Daná operace má nadřazenou položku, která není null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nothing">
+        <source>Nothing</source>
+        <target state="translated">Nic</target>
         <note />
       </trans-unit>
       <trans-unit id="OperationHasNullSemanticModel">

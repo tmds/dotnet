@@ -142,7 +142,15 @@ internal class TelemetryReporter : ITelemetryReporter
             var propertyString = string.Join(",", telemetryEvent.Properties.Select(kvp => $"[ {kvp.Key}:{kvp.Value} ]"));
             _logger?.LogTrace("Telemetry Event: {name} \n Properties: {propertyString}\n", name, propertyString);
 
-            Debug.Assert(telemetryEvent is not FaultEvent, $"Fault Event: {name} \n Properties: {propertyString}");
+            if (telemetryEvent is FaultEvent)
+            {
+                var eventType = telemetryEvent.GetType();
+                var description = eventType.GetProperty("Description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+                var exception = eventType.GetProperty("ExceptionObject", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(telemetryEvent, null);
+                var message = $"Fault Event: {name} \n Exception Info: {exception ?? description} \n Properties: {propertyString}";
+
+                Debug.Assert(true, message);
+            }
 #endif
         }
         catch (Exception e)
@@ -221,14 +229,14 @@ internal class TelemetryReporter : ITelemetryReporter
         return new TelemetryScope(this, name, severity, values.ToImmutableDictionary((tuple) => tuple.Key, (tuple) => (object?)tuple.Value));
     }
 
-    public IDisposable TrackLspRequest(string name, string lspMethodName, string languageServerName, Guid correlationId)
+    public IDisposable TrackLspRequest(string lspMethodName, string languageServerName, Guid correlationId)
     {
         if (correlationId == Guid.Empty)
         {
             return NullTelemetryScope.Instance;
         }
 
-        return BeginBlock(name, Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
+        return BeginBlock("TrackLspRequest", Severity.Normal, ImmutableDictionary.CreateRange(new KeyValuePair<string, object?>[]
         {
             new("eventscope.method", lspMethodName),
             new("eventscope.languageservername", languageServerName),
