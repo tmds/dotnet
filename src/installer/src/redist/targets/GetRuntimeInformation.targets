@@ -17,9 +17,9 @@
 
       <PortableOSName Condition=" '$(PortableOSName)' == '' ">$(OSName)</PortableOSName>
 
-      <Rid>$(OSName)-$(Architecture)</Rid>
+      <Rid Condition=" '$(Rid)' == '' ">$(OSName)-$(Architecture)</Rid>
 
-      <PortableRid>$(PortableOSName)-$(Architecture)</PortableRid>
+      <PortableRid Condition=" '$(PortableRid)' == '' ">$(PortableOSName)-$(Architecture)</PortableRid>
     </PropertyGroup>
 
     <PropertyGroup>

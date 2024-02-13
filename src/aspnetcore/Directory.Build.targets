@@ -152,6 +152,21 @@
     <KnownFrameworkReference Remove="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
 
+  <!-- <ItemGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+    <KnownFrameworkReference Update="Microsoft.NETCore.App">
+      <RuntimePackRuntimeIdentifiers
+        Condition="'%(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'">%(RuntimePackRuntimeIdentifiers);$(TargetRuntimeIdentifier)</RuntimePackRuntimeIdentifiers>
+    </KnownFrameworkReference>
+    <KnownAppHostPack Update="Microsoft.NETCore.App">
+      <AppHostRuntimeIdentifiers
+        Condition="'%(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'">%(AppHostRuntimeIdentifiers);$(TargetRuntimeIdentifier)</AppHostRuntimeIdentifiers>
+    </KnownAppHostPack>
+    <KnownCrossgen2Pack Update="Microsoft.NETCore.App.Crossgen2">
+      <Crossgen2RuntimeIdentifiers
+        Condition="'%(TargetFramework)' == '$(DefaultNetCoreTargetFramework)'" >%(Crossgen2RuntimeIdentifiers);$(TargetRuntimeIdentifier)</Crossgen2RuntimeIdentifiers>
+    </KnownCrossgen2Pack>
+  </ItemGroup> -->
+
   <PropertyGroup Condition=" '$(CopySymbolsToArtifacts)' == 'true' AND '$(TargetFramework)' != '' ">
     <BuildDependsOn>$(BuildDependsOn);_CopySymbolsToArtifacts</BuildDependsOn>
   </PropertyGroup>
