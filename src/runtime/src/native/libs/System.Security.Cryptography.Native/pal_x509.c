@@ -272,10 +272,10 @@ int32_t CryptoNative_X509StoreCtxInit(X509_STORE_CTX* ctx, X509_STORE* store, X5
 
     int32_t val = X509_STORE_CTX_init(ctx, store, x509, extraStore);
 
-    if (val != 0)
-    {
-        X509_STORE_CTX_set_flags(ctx, X509_V_FLAG_CHECK_SS_SIGNATURE);
-    }
+    // if (val != 0)
+    // {
+    //     X509_STORE_CTX_set_flags(ctx, X509_V_FLAG_CHECK_SS_SIGNATURE);
+    // }
 
     return val;
 }
