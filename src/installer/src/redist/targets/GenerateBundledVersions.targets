@@ -353,6 +353,10 @@
 
       <Crossgen2SupportedRids Include="@(Net90Crossgen2SupportedRids);" />
 
+      <!-- <Crossgen2SupportedRids
+        Condition="'$(BundleAot)' == 'true'"
+        Include="$(ProductMonikerRid)" /> -->
+
       <Net70ILCompilerSupportedRids Include="
         linux-arm64;
         linux-musl-arm64;
@@ -379,6 +383,10 @@
       <!-- The subset of ILCompiler target RIDs that are officially supported. Should be a subset of
            https://github.com/dotnet/runtime/blob/main/src/installer/pkg/projects/Microsoft.DotNet.ILCompiler/ILCompilerRIDs.props -->
       <ILCompilerSupportedRids Include="@(Net90ILCompilerSupportedRids)" />
+
+      <ILCompilerSupportedRids
+        Condition="'$(BundleAot)' == 'true'"
+        Include="$(ProductMonikerRid)" />
 
       <Net80NativeAOTRuntimePackRids Include="
           ios-arm64;
