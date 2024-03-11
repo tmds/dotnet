@@ -146,8 +146,8 @@
     <Message Importance="High" Text="  $(BuildCommand)" Condition="'$(BuildCommand)' != ''" />
     <Message Importance="High" Text="  Using custom build target" Condition="'$(BuildCommand)' == ''" />
     <Message Importance="High" Text="  Log: $(RepoConsoleLogFile)" />
-    <Message Importance="High" Text="  With Environment Variables:" />
-    <Message Importance="High" Text="    %(EnvironmentVariables.Identity)" />
+    <Message Importance="High" Text=" $(ProjectBuildReason) With Environment Variables:" />
+    <Message Importance="High" Text=" $(ProjectBuildReason)   %(EnvironmentVariables.Identity)" />
     <CallTarget Targets="RepoBuild" />
     <Message Importance="High" Text="[$([System.DateTime]::Now.ToString('HH:mm:ss.ff'))] Building $(ProjectBuildReason)...done" />
 
