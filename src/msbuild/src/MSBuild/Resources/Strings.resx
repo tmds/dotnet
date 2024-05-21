@@ -1076,6 +1076,14 @@
       LOCALIZATION: The prefix "MSBUILD : error MSBxxxx:" should not be localized.
     </comment>
   </data>
+  <data name="MissingGetResultFileError" xml:space="preserve">
+    <value>MSBUILD : error MSB1068: Must provide a file for the getResultOutputFile switch.</value>
+    <comment>
+      {StrBegin="MSBUILD : error MSB1068: "}UE: This happens if the user does something like "msbuild.exe -getResultOutputFile". The user must pass in an actual file
+      following the switch, as in "msbuild.exe -getTargetResult:blah -getResultOutputFile:blah.txt".
+      LOCALIZATION: The prefix "MSBUILD : error MSBxxxx:" should not be localized.
+    </comment>
+  </data>
   <data name="MissingToolsVersionError" UESanitized="false" Visibility="Public">
     <value>MSBUILD : error MSB1039: Specify the version of the toolset.</value>
     <comment>
@@ -1573,7 +1581,11 @@
     <!--
         The command line message bucket is: MSB1001 - MSB1999
 
+<<<<<<< HEAD
         Next error code should be MSB1067.
+=======
+        Next error code should be MSB1069.
+>>>>>>> 03caba8a2f (Add MissingGetResultFileError in resource file (#9835))
 
         Don't forget to update this comment after using the new code.
   -->
