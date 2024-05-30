@@ -4,6 +4,10 @@
     <GeneratePackage>true</GeneratePackage>
     <IncludeSymbolsInPackage>true</IncludeSymbolsInPackage>
     <PackageDescription>Provides a native AOT compiler and runtime for .NET</PackageDescription>
+
+    <!-- Configure the packaging for source-build so it doesn't include a 'runtime.json' file. -->
+    <IncludeRuntimeJson Condition="'$(DotNetBuildSourceOnly)' == 'true'">false</IncludeRuntimeJson>
+    <ExcludeLineupReference Condition="'$(DotNetBuildSourceOnly)' == 'true'">true</ExcludeLineupReference>
   </PropertyGroup>
 
   <Target Name="GetIlcCompilerFiles"
