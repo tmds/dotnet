@@ -19,7 +19,8 @@ namespace Microsoft.DotNet.Tools.Tool.Common
             Description = UpdateToolsLocalizableStrings.UpdateAllOptionDescription
         };
 
-        public static readonly CliOption<string> VersionOption = ToolInstallCommandParser.VersionOption;
+        public static readonly CliOption<string> VersionOption = ToolInstallCommandParser.VersionOption
+                            ?? new("--version"); // Workaround for Mono (https://github.com/dotnet/sdk/issues/41672)
 
         public static CliOption<string> ToolPathOption = new("--tool-path")
         {
