@@ -32,6 +32,15 @@ public class SdkTemplateTests : IClassFixture<ScenarioTestFixture>
         newTest.Execute(_sdkHelper, _scenarioTestInput.TestRoot);
     }
 
+    [Fact]
+    public void VerifyConsoleTemplatePublishAot()
+    {
+        var newTest = new SdkTemplateTest(
+            nameof(SdkTemplateTests) + "Aot", DotNetLanguage.CSharp, _scenarioTestInput.TargetRid, DotNetSdkTemplate.Console,
+            DotNetSdkActions.PublishAot);
+        newTest.Execute(_sdkHelper, _scenarioTestInput.TestRoot);
+    }
+
     [Theory]
     [MemberData(nameof(GetLanguages))]
     [Trait("Category", "Offline")]
