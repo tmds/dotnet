@@ -606,7 +606,11 @@
     <ReplaceFilesWithSymbolicLinks Directory="$(RedistLayoutPath)/packs/Microsoft.NETCore.App.Runtime.$(SharedFrameworkRid)/$(MicrosoftNETCoreAppRuntimePackageVersion)" LinkToFilesFrom="$(RedistLayoutPath)/host/fxr/$(MicrosoftNETCoreAppRuntimePackageVersion)" />
     <ReplaceFilesWithSymbolicLinks Directory="$(RedistLayoutPath)/packs/Microsoft.AspNetCore.App.Runtime.$(SharedFrameworkRid)/$(MicrosoftAspNetCoreAppRuntimePackageVersion)" LinkToFilesFrom="$(RedistLayoutPath)/shared/Microsoft.AspNetCore.App/$(MicrosoftAspNetCoreAppRuntimePackageVersion)" />
   </Target>
-
+  <!-- Replace files from the ILCompiler pack with symbolic links to the corresponding shared framework files to reduce the size of the runtime pack directories. -->
+  <Target Name="ReplaceBundledILCompilerPackFilesWithSymbolicLinks" DependsOnTargets="LayoutBundledComponents"
+                                                                    Condition="'$(BundleNativeAotCompiler)' == 'true' and  !$([MSBuild]::IsOSPlatform('WINDOWS'))">
+    <ReplaceFilesWithSymbolicLinks Directory="$(RedistLayoutPath)/packs/runtime.$(SharedFrameworkRid).Microsoft.DotNet.ILCompiler/$(MicrosoftNETCoreAppRuntimePackageVersion)" LinkToFilesFrom="$(RedistLayoutPath)/shared/Microsoft.NETCore.App/$(MicrosoftNETCoreAppRuntimePackageVersion)" />
+  </Target>
   <Target Name="GenerateLayout"
           DependsOnTargets="DownloadBundledComponents;
                             CleanLayoutPath;
@@ -623,7 +627,8 @@
                             RetargetTools;
                             CrossgenLayout;
                             LayoutAppHostTemplate;
-                            ReplaceBundledRuntimePackFilesWithSymbolicLinks"
+                            ReplaceBundledRuntimePackFilesWithSymbolicLinks;
+                            ReplaceBundledILCompilerPackFilesWithSymbolicLinks"
           BeforeTargets="AfterBuild" />
 
   <Target Name="GenerateInternalLayout"
