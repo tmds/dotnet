@@ -7,6 +7,8 @@ set -u
 # Prevents hidden errors caused by missing error code propagation.
 set -e
 
+set -x
+
 usage()
 {
   echo "Common settings:"
@@ -248,6 +250,7 @@ function Build {
       $targets \
       $bl \
       /p:Configuration=$configuration \
+      /v:$verbosity \
       "${properties[@]}"
 
     ExitWithExitCode 0
@@ -278,7 +281,7 @@ function Build {
       bl="/bl:\"$log_dir/Build.binlog\""
     fi
 
-    "$CLI_ROOT/dotnet" msbuild --restore "$project" $bl $targets "${properties[@]}"
+    "$CLI_ROOT/dotnet" msbuild --restore "$project" $bl $targets -v:$verbosity "${properties[@]}"
   fi
 }
 
