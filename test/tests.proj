@@ -19,9 +19,9 @@
 
   <ItemGroup>
     <ProjectReference Include="Microsoft.DotNet.SourceBuild.SmokeTests\Microsoft.DotNet.SourceBuild.SmokeTests.csproj"
-                      Condition="'$(DotNetBuildSourceOnly)' == 'true'" />
+                      Condition="'$(DotNetBuildSourceOnly)' == 'true'" BuildInParallel="false" />
     <ProjectReference Include="Microsoft.DotNet.UnifiedBuild.Tests\Microsoft.DotNet.UnifiedBuild.Tests.csproj"
-                      Condition="'$(ShortStack)' != 'true' and '$(PortableBuild)' == 'true' and '$(PgoInstrument)' != 'true'" />
+                      Condition="'$(ShortStack)' != 'true' and '$(PortableBuild)' == 'true' and '$(PgoInstrument)' != 'true'" BuildInParallel="false" />
   </ItemGroup>
 
   <!-- Make sure that the sdk archive is extracted before running the scenario-tests. Need to do this here as it's hard
