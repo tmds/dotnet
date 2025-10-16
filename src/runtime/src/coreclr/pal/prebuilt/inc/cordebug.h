@@ -10042,6 +10042,7 @@ EXTERN_C const IID IID_ICorDebugRegisterSet2;
 typedef
 enum CorDebugUserState
     {
+        CORDEBUG_INVALID = -1,
         USER_STOP_REQUESTED = 0x1,
         USER_SUSPEND_REQUESTED  = 0x2,
         USER_BACKGROUND = 0x4,
