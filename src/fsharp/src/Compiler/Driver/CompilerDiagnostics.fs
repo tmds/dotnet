@@ -1757,11 +1757,7 @@ type Exception with
             os.AppendString(ConvertValLogicalNameToDisplayNameCore s)
             OutputNameSuggestions os suggestNames suggestionF idText
 
-        | InternalError(s, _)
-        | InternalException(_, s, _)
-        | InvalidArgument s
-        | Failure s as exn ->
-            ignore exn // use the argument, even in non DEBUG
+        | InternalException(innerExn, s, _) ->
             let f1 = SR.GetString("Failure1")
             let f2 = SR.GetString("Failure2")
 
@@ -1769,10 +1765,19 @@ type Exception with
             | f when f = f1 -> os.AppendString(Failure3E().Format s)
             | f when f = f2 -> os.AppendString(Failure3E().Format s)
             | _ -> os.AppendString(Failure4E().Format s)
-#if DEBUG
+            Printf.bprintf os "\nStack Trace\n%s\n" (innerExn.ToString())
+
+        | InternalError(s, _)
+        | InvalidArgument s
+        | Failure s as exn ->
+            let f1 = SR.GetString("Failure1")
+            let f2 = SR.GetString("Failure2")
+
+            match s with
+            | f when f = f1 -> os.AppendString(Failure3E().Format s)
+            | f when f = f2 -> os.AppendString(Failure3E().Format s)
+            | _ -> os.AppendString(Failure4E().Format s)
             Printf.bprintf os "\nStack Trace\n%s\n" (exn.ToString())
-            Debug.Assert(false, sprintf "Unexpected exception seen in compiler: %s\n%s" s (exn.ToString()))
-#endif
 
         | WrappedError(e, _) -> e.Output(os, suggestNames)
 
