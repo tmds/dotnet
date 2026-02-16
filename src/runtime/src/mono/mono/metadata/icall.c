@@ -110,7 +110,7 @@
 // including potential exception handling and garbage collection. Used for probing for available
 // stack space through RuntimeHelpers.EnsureSufficientExecutionStack.
 #if TARGET_SIZEOF_VOID_P == 8
-#define MONO_MIN_EXECUTION_STACK_SIZE (128 * 1024)
+#define MONO_MIN_EXECUTION_STACK_SIZE (4 * 128 * 1024)
 #else
 #define MONO_MIN_EXECUTION_STACK_SIZE (64 * 1024)
 #endif
