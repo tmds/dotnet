@@ -74,7 +74,7 @@ mono_thread_platform_create_thread (MonoThreadStart thread_fn, gpointer thread_d
 		else
 			set_stack_size = (SIZEOF_VOID_P / 4) * 1024 * 1024;
 #else
-		set_stack_size = (SIZEOF_VOID_P / 4) * 1024 * 1024;
+		set_stack_size = 8 * 1024 * 1024;
 #endif
 	}
 
