@@ -1,5 +1,6 @@
 ﻿module internal rec FSharp.Compiler.GraphChecking.FileContentMapping
 
+open FSharp.Compiler.DiagnosticsLogger
 open FSharp.Compiler.Syntax
 open FSharp.Compiler.SyntaxTreeOps
 
@@ -362,7 +363,9 @@ let (|NameofExpr|_|) (e: SynExpr) : NameofResult voption =
     | _ -> ValueNone
 
 let visitSynExpr (e: SynExpr) : FileContentEntry list =
+    let stackGuard = StackGuard("FileContentMapping")
     let rec visit (e: SynExpr) (continuation: FileContentEntry list -> FileContentEntry list) : FileContentEntry list =
+        stackGuard.Guard(fun () ->
         match e with
         | NameofExpr nameofResult -> continuation [ visitNameofResult nameofResult ]
         | SynExpr.Const _ -> continuation []
@@ -581,6 +584,7 @@ let visitSynExpr (e: SynExpr) : FileContentEntry list =
         | SynExpr.Dynamic(funcExpr, _, argExpr, _) ->
             let continuations = List.map visit [ funcExpr; argExpr ]
             Continuation.concatenate continuations continuation
+        )
 
     visit e id
 
