@@ -385,14 +385,60 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Task/ValueTask-based. If the return type ends up not being Task/ValueTask,
                 // that will bust the cache and ensure the body is re-bound with the correct
                 // handling
+                LogRuntimeAsyncTrap(symbol, "lambda-inference");
                 return true;
             }
 
-            return ((InternalSpecialType)methodReturn.ExtendedSpecialType) is (
+            var result = ((InternalSpecialType)methodReturn.ExtendedSpecialType) is (
                 InternalSpecialType.System_Threading_Tasks_Task or
                 InternalSpecialType.System_Threading_Tasks_Task_T or
                 InternalSpecialType.System_Threading_Tasks_ValueTask or
                 InternalSpecialType.System_Threading_Tasks_ValueTask_T);
+            if (result)
+            {
+                LogRuntimeAsyncTrap(symbol, "final-check");
+            }
+            return result;
+        }
+
+        private void LogRuntimeAsyncTrap(Symbol? symbol, string reason)
+        {
+            try
+            {
+                var logPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "runtime-async-trap.log");
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"=== RUNTIME-ASYNC-TRAP at {System.DateTime.UtcNow:O} ({reason}) ===");
+                sb.AppendLine($"Method: {symbol?.ToDisplayString()}");
+                sb.AppendLine($"Containing assembly: {symbol?.ContainingAssembly?.Name}");
+                sb.AppendLine($"Feature flag value: {Feature(CodeAnalysis.Feature.RuntimeAsync)}");
+                sb.AppendLine($"PID: {System.Environment.ProcessId}");
+                sb.AppendLine($"Process: {System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName}");
+                sb.AppendLine($"CommandLine: {System.Environment.CommandLine}");
+                sb.AppendLine($"Stack trace:");
+                sb.AppendLine(System.Environment.StackTrace);
+                sb.AppendLine();
+                sb.AppendLine("Process tree:");
+                try
+                {
+                    var pstree = new System.Diagnostics.Process();
+                    pstree.StartInfo.FileName = "pstree";
+                    pstree.StartInfo.Arguments = $"-s -a -l -p {System.Environment.ProcessId}";
+                    pstree.StartInfo.RedirectStandardOutput = true;
+                    pstree.StartInfo.UseShellExecute = false;
+                    pstree.Start();
+                    sb.AppendLine(pstree.StandardOutput.ReadToEnd());
+                    pstree.WaitForExit(5000);
+                }
+                catch (System.Exception ex)
+                {
+                    sb.AppendLine($"  pstree failed: {ex.Message}");
+                }
+                sb.AppendLine("=== END ===");
+                sb.AppendLine();
+                System.IO.File.AppendAllText(logPath, sb.ToString());
+                System.Console.Error.WriteLine($"RUNTIME-ASYNC-TRAP: logged to {logPath} for {symbol?.ToDisplayString()} ({reason})");
+            }
+            catch { }
         }
 
         /// <summary>

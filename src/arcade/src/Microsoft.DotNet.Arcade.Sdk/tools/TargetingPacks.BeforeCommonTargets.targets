@@ -102,12 +102,11 @@
     When .NET gets built from source, the SDK's known RID sets may not include the RIDs used during the build.
     Append them here so that self-contained publishing (ReadyToRun, NativeAOT) can locate the matching source-built packs.
 
-    $(NETCoreSdkRuntimeIdentifier) is added to KnownRuntimePack and KnownCrossgen2Pack because the runtime *_inbuild tool projects (crossgen2_inbuild, ILCompiler_inbuild)
+    $(NETCoreSdkRuntimeIdentifier) is the host SDK RID (e.g. linux-x64). It is needed because the runtime *_inbuild tool projects (crossgen2_inbuild, ILCompiler_inbuild)
     are published self-contained for the host using RuntimeIdentifier=$(NETCoreSdkRuntimeIdentifier).
 
-    Both $(TargetRid) and $(NETCoreSdkRuntimeIdentifier) are added to KnownILCompilerPack because source-build produces two ILCompiler NuGet packages:
-    one for the target RID ($(TargetRid)), and one for the host SDK RID ($(NETCoreSdkRuntimeIdentifier)).
-    Both need to be known for pack resolution to succeed.
+    $(TargetRid) is the non-portable build target RID (e.g. fedora.43-x64). It is needed because projects like dotnet-aot publish
+    with RuntimeIdentifier=$(TargetRid), and the SDK's pack resolution must recognize that RID.
 
     IlcHostRuntimeIdentifier/IlcTargetOS are set to $(NETCoreSdkRuntimeIdentifier)/$(TargetOS).
     This is needed because the logic in SingleEntry.targets does not work when using a non-portable SDK to build an SDK with a different non-portable RID.
