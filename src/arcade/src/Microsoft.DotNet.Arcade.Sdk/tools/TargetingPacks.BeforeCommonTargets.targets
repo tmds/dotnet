@@ -118,23 +118,23 @@
   </PropertyGroup>
   <ItemGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <KnownFrameworkReference Update="Microsoft.NETCore.App">
-      <RuntimePackRuntimeIdentifiers>%(RuntimePackRuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier)</RuntimePackRuntimeIdentifiers>
+      <RuntimePackRuntimeIdentifiers>%(RuntimePackRuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier);$(TargetRid)</RuntimePackRuntimeIdentifiers>
     </KnownFrameworkReference>
 
     <KnownFrameworkReference Update="Microsoft.AspNetCore.App">
-      <RuntimePackRuntimeIdentifiers>%(RuntimePackRuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier)</RuntimePackRuntimeIdentifiers>
+      <RuntimePackRuntimeIdentifiers>%(RuntimePackRuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier);$(TargetRid)</RuntimePackRuntimeIdentifiers>
     </KnownFrameworkReference>
 
     <KnownRuntimePack Update="Microsoft.NETCore.App">
-      <RuntimePackRuntimeIdentifiers>%(RuntimePackRuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier)</RuntimePackRuntimeIdentifiers>
+      <RuntimePackRuntimeIdentifiers>%(RuntimePackRuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier);$(TargetRid)</RuntimePackRuntimeIdentifiers>
     </KnownRuntimePack>
 
     <KnownCrossgen2Pack Update="Microsoft.NETCore.App.Crossgen2">
-      <Crossgen2RuntimeIdentifiers>%(Crossgen2RuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier)</Crossgen2RuntimeIdentifiers>
+      <Crossgen2RuntimeIdentifiers>%(Crossgen2RuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier);$(TargetRid)</Crossgen2RuntimeIdentifiers>
     </KnownCrossgen2Pack>
 
     <KnownILCompilerPack Update="Microsoft.DotNet.ILCompiler">
-      <ILCompilerRuntimeIdentifiers>%(ILCompilerRuntimeIdentifiers);$(TargetRid);$(NETCoreSdkRuntimeIdentifier)</ILCompilerRuntimeIdentifiers>
+      <ILCompilerRuntimeIdentifiers>%(ILCompilerRuntimeIdentifiers);$(NETCoreSdkRuntimeIdentifier);$(TargetRid)</ILCompilerRuntimeIdentifiers>
     </KnownILCompilerPack>
   </ItemGroup>
 
