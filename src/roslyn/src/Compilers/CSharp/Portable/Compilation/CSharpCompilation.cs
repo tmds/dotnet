@@ -437,6 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sb.AppendLine();
                 System.IO.File.AppendAllText(logPath, sb.ToString());
                 System.Console.Error.WriteLine($"RUNTIME-ASYNC-TRAP: logged to {logPath} for {symbol?.ToDisplayString()} ({reason})");
+
+                // Sleep to allow taking coredumps of the process tree
+                System.Console.Error.WriteLine($"RUNTIME-ASYNC-TRAP: sleeping 600s for coredump — PID {System.Environment.ProcessId}");
+                System.Threading.Thread.Sleep(600_000);
             }
             catch { }
         }

@@ -43,7 +43,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Features>$(Features);runtime-async=on</Features>
+    <Features Condition="'$(UseRuntimeAsync)' != 'false'">$(Features);runtime-async=on</Features>
   </PropertyGroup>
 
   <!-- Sources -->

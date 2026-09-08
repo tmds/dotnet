@@ -5,6 +5,8 @@
     <DotNetBuildFromVMR>true</DotNetBuildFromVMR>
     <!-- Use the product's test functionality without any Arcade support. MTP doesn't need that. -->
     <DisableArcadeTestFramework>true</DisableArcadeTestFramework>
+    <!-- Disable runtime-async across the entire VMR build for debugging -->
+    <UseRuntimeAsync>false</UseRuntimeAsync>
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)eng/RuntimeIdentifier.props" />
