@@ -724,6 +724,9 @@ if (CLR_CMAKE_HOST_UNIX OR CLR_CMAKE_HOST_WASI)
 
     # clang 20 suppressions
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-nontrivial-memaccess>)
+
+    # clang 23 suppressions
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-template>)
   else()
     add_compile_options(-Wno-uninitialized)
     add_compile_options(-Wno-strict-aliasing)
